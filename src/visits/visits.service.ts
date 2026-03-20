@@ -1,0 +1,106 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Visit, VisitStatus } from './entities/visit.entity';
+import { CheckInVisitDto, CheckOutVisitDto } from './dto/visit.dto';
+
+@Injectable()
+export class VisitsService {
+  constructor(
+    @InjectRepository(Visit)
+    private readonly visitRepository: Repository<Visit>,
+  ) {}
+
+  // Check-in: Abre una visita con primer escaneo NFC + GPS
+  async checkIn(checkInVisitDto: CheckInVisitDto): Promise<Visit> {
+    // Validar que no haya una visita abierta para este usuario+máquina
+    const openVisit = await this.visitRepository.findOne({
+      where: {
+        user: { id: checkInVisitDto.userId },
+        machine: { id: checkInVisitDto.machineId },
+        status: VisitStatus.ABIERTA,
+      },
+    });
+
+    if (openVisit) {
+      throw new BadRequestException('User already has an open visit for this machine');
+    }
+
+    const visit = this.visitRepository.create({
+      tenant: { id: checkInVisitDto.tenantId },
+      user: { id: checkInVisitDto.userId },
+      machine: { id: checkInVisitDto.machineId },
+      checkInNfcUid: checkInVisitDto.checkInNfcUid,
+      checkInGpsLat: checkInVisitDto.checkInGpsLat,
+      checkInGpsLng: checkInVisitDto.checkInGpsLng,
+      status: VisitStatus.ABIERTA,
+    });
+
+    return this.visitRepository.save(visit);
+  }
+
+  // Check-out: Cierra la visita con segundo escaneo NFC + GPS obligatorio
+  async checkOut(checkOutVisitDto: CheckOutVisitDto): Promise<Visit> {
+    const visit = await this.visitRepository.findOne({
+      where: { id: checkOutVisitDto.visitId, status: VisitStatus.ABIERTA },
+    });
+
+    if (!visit) {
+      throw new NotFoundException('No open visit found');
+    }
+
+    // Validar que el NFC coincida
+    const nfcMatches = visit.checkInNfcUid === checkOutVisitDto.checkOutNfcUid;
+
+    visit.checkOutTimestamp = new Date();
+    visit.checkOutNfcUid = checkOutVisitDto.checkOutNfcUid;
+    visit.checkOutGpsLat = checkOutVisitDto.checkOutGpsLat;
+    visit.checkOutGpsLng = checkOutVisitDto.checkOutGpsLng;
+    visit.status = VisitStatus.CERRADA;
+
+    return this.visitRepository.save(visit);
+  }
+
+  async findById(id: string): Promise<Visit> {
+    const visit = await this.visitRepository.findOne({
+      where: { id },
+      relations: ['user', 'machine', 'tenant', 'attachments'],
+    });
+
+    if (!visit) {
+      throw new NotFoundException(`Visit with ID ${id} not found`);
+    }
+
+    return visit;
+  }
+
+  async findByUser(userId: string, tenantId: string): Promise<Visit[]> {
+    return this.visitRepository.find({
+      where: {
+        user: { id: userId },
+        tenant: { id: tenantId },
+      },
+      relations: ['machine', 'attachments'],
+      order: { createdAt: 'DESC' },
+    });
+  }
+
+  async findOpenVisits(tenantId: string): Promise<Visit[]> {
+    return this.visitRepository.find({
+      where: {
+        tenant: { id: tenantId },
+        status: VisitStatus.ABIERTA,
+      },
+      relations: ['user', 'machine'],
+      order: { checkInTimestamp: 'DESC' },
+    });
+  }
+
+  // Calcula duración de la visita
+  getVisitDuration(visit: Visit): number | null {
+    if (!visit.checkOutTimestamp) return null;
+    return Math.floor(
+      (visit.checkOutTimestamp.getTime() - visit.checkInTimestamp.getTime()) / 1000
+    ); // en segundos
+  }
+}
