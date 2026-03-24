@@ -12,7 +12,20 @@ export class AttachmentsService {
   ) {}
 
   async create(createAttachmentDto: CreateAttachmentDto): Promise<Attachment> {
-    const attachment = this.attachmentRepository.create(createAttachmentDto);
+    const attachment = this.attachmentRepository.create({
+      tenant_id: createAttachmentDto.tenantId,
+      uploaded_by_id: createAttachmentDto.uploadedById,
+      visit_id: createAttachmentDto.visitId,
+      work_order_id: createAttachmentDto.workOrderId,
+      ticket_id: createAttachmentDto.ticketId,
+      type: createAttachmentDto.type,
+      category: createAttachmentDto.category,
+      fileName: createAttachmentDto.fileName,
+      fileSizeBytes: createAttachmentDto.fileSizeBytes,
+      mimeType: createAttachmentDto.mimeType,
+      azureBlobUrl: createAttachmentDto.azureBlobUrl,
+      description: createAttachmentDto.description,
+    });
     return this.attachmentRepository.save(attachment);
   }
 
@@ -29,23 +42,35 @@ export class AttachmentsService {
     return attachment;
   }
 
-  async findByVisit(visitId: string): Promise<Attachment[]> {
+  async findByVisit(visitId: string, tenantId?: string): Promise<Attachment[]> {
+    const where: any = { visit: { id: visitId } };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
     return this.attachmentRepository.find({
-      where: { visit: { id: visitId } },
+      where,
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findByWorkOrder(workOrderId: string): Promise<Attachment[]> {
+  async findByWorkOrder(workOrderId: string, tenantId?: string): Promise<Attachment[]> {
+    const where: any = { workOrder: { id: workOrderId } };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
     return this.attachmentRepository.find({
-      where: { workOrder: { id: workOrderId } },
+      where,
       order: { createdAt: 'DESC' },
     });
   }
 
-  async findByTicket(ticketId: string): Promise<Attachment[]> {
+  async findByTicket(ticketId: string, tenantId?: string): Promise<Attachment[]> {
+    const where: any = { ticket: { id: ticketId } };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
     return this.attachmentRepository.find({
-      where: { ticket: { id: ticketId } },
+      where,
       order: { createdAt: 'DESC' },
     });
   }

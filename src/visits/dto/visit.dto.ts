@@ -23,6 +23,7 @@ export class CheckInVisitDto {
 
 export class CheckOutVisitDto {
   @IsUUID()
+  @IsOptional()
   visitId: string;
 
   @IsString()

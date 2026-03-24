@@ -1012,8 +1012,6 @@ export class CreateInitialSchema1678879200000 implements MigrationInterface {
         onDelete: 'CASCADE',
       }),
     );
-
-    console.log('✅ Initial schema created successfully');
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
@@ -1027,7 +1025,5 @@ export class CreateInitialSchema1678879200000 implements MigrationInterface {
     await queryRunner.dropTable('machines', true);
     await queryRunner.dropTable('users', true);
     await queryRunner.dropTable('tenants', true);
-
-    console.log('✅ Schema rolled back successfully');
   }
 }

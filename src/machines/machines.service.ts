@@ -46,9 +46,14 @@ export class MachinesService {
     return query.getMany();
   }
 
-  async findById(id: string): Promise<Machine> {
+  async findById(id: string, tenantId?: string): Promise<Machine> {
+    const where: any = { id };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
+
     const machine = await this.machineRepository.findOne({
-      where: { id },
+      where,
       relations: ['assignedUser', 'nfcTag', 'tenant'],
     });
 
@@ -75,9 +80,9 @@ export class MachinesService {
   async update(id: string, updateMachineDto: UpdateMachineDto): Promise<Machine> {
     const machine = await this.findById(id);
 
-    if (updateMachineDto.status === MachineStatus.EN_RETIRO) {
-      // Máquina en retiro bloquea operaciones
-      machine.status = MachineStatus.EN_RETIRO;
+    if (updateMachineDto.status === MachineStatus.DECOMMISSIONED) {
+      // Máquina decomisionada bloquea operaciones
+      machine.status = MachineStatus.DECOMMISSIONED;
     }
 
     Object.assign(machine, updateMachineDto);
@@ -167,6 +172,6 @@ export class MachinesService {
 
   // Validación de negocio
   canOperateOnMachine(machine: Machine): boolean {
-    return machine.status !== MachineStatus.EN_RETIRO;
+    return machine.status !== MachineStatus.DECOMMISSIONED;
   }
 }

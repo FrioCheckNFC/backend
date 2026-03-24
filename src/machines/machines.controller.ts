@@ -43,7 +43,7 @@ export class MachinesController {
   @Get()
   @RequireRoles('ADMIN', 'VENDOR', 'TECHNICIAN', 'DRIVER', 'RETAILER')
   findAll(
-    @Query('tenantId') tenantId: string,
+    @CurrentTenant() tenantId: string,
     @Query('status') status?: MachineStatus,
   ) {
     return this.machinesService.findAll(tenantId, status);
@@ -59,7 +59,7 @@ export class MachinesController {
   @RequireRoles('ADMIN', 'VENDOR', 'TECHNICIAN', 'DRIVER', 'RETAILER')
   findBySerialNumber(
     @Param('serialNumber') serialNumber: string,
-    @Query('tenantId') tenantId: string,
+    @CurrentTenant() tenantId: string,
   ) {
     return this.machinesService.findBySerialNumber(serialNumber, tenantId);
   }
@@ -81,8 +81,8 @@ export class MachinesController {
   }
 
   @Get(':id/nfc-tag')
-  getNfcTag(@Param('id') machineId: string) {
-    // Devuelve el tag NFC asociado a la máquina
-    return this.machinesService.findById(machineId);
+  @RequireRoles('ADMIN', 'TECHNICIAN', 'VENDOR', 'DRIVER', 'RETAILER')
+  getNfcTag(@Param('id') machineId: string, @CurrentTenant() tenantId: string) {
+    return this.machinesService.findById(machineId, tenantId);
   }
 }

@@ -34,16 +34,17 @@ export class TenantsController {
     return this.tenantsService.findAll();
   }
 
-  @Get(':id')
-  @RequireRoles('ADMIN')
-  findById(@Param('id') id: string) {
-    return this.tenantsService.findById(id);
-  }
-
+  // Specific routes BEFORE generic :id to avoid route conflicts
   @Get('slug/:slug')
   @RequireRoles('ADMIN')
   findBySlug(@Param('slug') slug: string) {
     return this.tenantsService.findBySlug(slug);
+  }
+
+  @Get(':id')
+  @RequireRoles('ADMIN')
+  findById(@Param('id') id: string) {
+    return this.tenantsService.findById(id);
   }
 
   @Patch(':id')

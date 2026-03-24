@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Ticket, TicketStatus, TicketType } from './entities/ticket.entity';
+import { Ticket, TicketStatus, TicketType, TicketPriority } from './entities/ticket.entity';
 import { CreateTicketDto, UpdateTicketDto } from './dto/ticket.dto';
 
 @Injectable()
@@ -13,10 +13,24 @@ export class TicketsService {
 
   // Crear ticket: Puede ser por NFC o entrada manual (foto de placa)
   async create(createTicketDto: CreateTicketDto): Promise<Ticket> {
-    const ticket = this.ticketRepository.create({
-      ...createTicketDto,
-      status: TicketStatus.ABIERTO,
-    });
+    const ticket = this.ticketRepository.create();
+    ticket.tenant_id = createTicketDto.tenantId;
+    ticket.reported_by_id = createTicketDto.reportedById;
+    ticket.type = createTicketDto.type;
+    ticket.title = createTicketDto.title;
+    ticket.description = createTicketDto.description;
+    ticket.priority = createTicketDto.priority || TicketPriority.MEDIA;
+    ticket.status = TicketStatus.ABIERTO;
+    
+    if (createTicketDto.machineId) {
+      ticket.machine_id = createTicketDto.machineId;
+    }
+    if (createTicketDto.manualMachineId) {
+      ticket.manualMachineId = createTicketDto.manualMachineId;
+    }
+    if (createTicketDto.machinePhotoPlateUrl) {
+      ticket.machinePhotoPlateUrl = createTicketDto.machinePhotoPlateUrl;
+    }
 
     return this.ticketRepository.save(ticket);
   }
@@ -38,9 +52,14 @@ export class TicketsService {
     return query.orderBy('ticket.created_at', 'DESC').getMany();
   }
 
-  async findById(id: string): Promise<Ticket> {
+  async findById(id: string, tenantId?: string): Promise<Ticket> {
+    const where: any = { id };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
+
     const ticket = await this.ticketRepository.findOne({
-      where: { id },
+      where,
       relations: [
         'machine',
         'reportedBy',

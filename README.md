@@ -1,98 +1,226 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# FrioCheck API
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Sistema de control de visitas con NFC para refrigeración comercial.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Stack
 
-## Description
+- **Backend:** NestJS + TypeScript
+- **Base de datos:** PostgreSQL 15
+- **ORM:** TypeORM
+- **Autenticación:** JWT + Guards
+- **Cache:** Redis
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+## Requisitos
 
-## Project setup
+- Node.js 18+
+- Docker Desktop
+- PostgreSQL (vía Docker)
+
+## Instalación
 
 ```bash
-$ npm install
+# 1. Clonar repositorio
+git clone <repo-url>
+cd nfcproject
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Configurar variables de entorno
+cp .env.example .env
+# Editar .env con tus credenciales
+
+# 4. Iniciar servicios Docker
+docker compose up -d
+
+# 5. Ejecutar seed (crear datos iniciales)
+npx ts-node scripts/seed.ts
+
+# 6. Iniciar servidor
+npm run start:dev
 ```
 
-## Compile and run the project
+El servidor corre en `http://localhost:3001`
+
+## Credenciales (Seed)
+
+| Email | Contraseña | Rol |
+|-------|------------|-----|
+| admin@friocheck.com | Admin123! | ADMIN |
+| tecnico@friocheck.com | Tecnico123! | TECHNICIAN |
+| conductor@friocheck.com | Conductor123! | DRIVER |
+| vendedor@friocheck.com | Vendedor123! | VENDOR |
+| soporte@friocheck.com | Soporte123! | SUPPORT |
+
+## Estructura del Proyecto
+
+```
+nfcproject/
+├── src/
+│   ├── auth/              # Autenticación JWT
+│   ├── users/             # Usuarios (6 roles)
+│   ├── tenants/           # Multi-tenant
+│   ├── machines/          # Equipos refrigerados
+│   ├── nfc-tags/          # Etiquetas NFC
+│   ├── visits/            # Check-in / Check-out
+│   ├── work-orders/       # Órdenes de trabajo
+│   ├── tickets/           # Tickets de soporte
+│   ├── attachments/       # Archivos adjuntos
+│   ├── sync-queue/        # Cola de sincronización offline
+│   └── migrations/        # Migraciones TypeORM
+├── scripts/
+│   ├── seed.ts            # Crear datos iniciales
+│   └── cleanup.ts         # Limpiar base de datos
+├── docker-compose.yml     # Servicios Docker
+├── .env.example           # Variables de entorno
+└── SCHEMA_BD_FRIOCHECK.txt # Documentación del esquema
+```
+
+## Módulos y Endpoints
+
+### Auth (3 endpoints)
+```
+POST /auth/login
+POST /auth/register         [ADMIN]
+POST /auth/validate-token
+```
+
+### Users (6 endpoints)
+```
+POST /users                 [ADMIN]
+GET /users                  [ADMIN]
+GET /users/email/:email     [ADMIN]
+GET /users/:id              [ADMIN]
+PATCH /users/:id            [ADMIN]
+DELETE /users/:id           [ADMIN]
+```
+
+### Tenants (6 endpoints)
+```
+POST /tenants               [ADMIN]
+GET /tenants                [ADMIN]
+GET /tenants/slug/:slug     [ADMIN]
+GET /tenants/:id            [ADMIN]
+PATCH /tenants/:id          [ADMIN]
+DELETE /tenants/:id         [ADMIN]
+```
+
+### Machines (8 endpoints)
+```
+POST /machines              [ADMIN]
+POST /machines/scan         [ADMIN]
+GET /machines               [ADMIN]
+GET /machines/serial/:serial [ADMIN]
+GET /machines/:id           [ADMIN]
+GET /machines/:id/nfc-tag   [ADMIN]
+PATCH /machines/:id         [ADMIN]
+DELETE /machines/:id        [ADMIN]
+```
+
+### NFC Tags (7 endpoints)
+```
+POST /nfc-tags              [ADMIN, TECHNICIAN]
+GET /nfc-tags               [ADMIN, TECHNICIAN, VENDOR, DRIVER, RETAILER]
+GET /nfc-tags/machine/:id   [ADMIN, TECHNICIAN, VENDOR, DRIVER, RETAILER]
+GET /nfc-tags/:uid          [ADMIN, TECHNICIAN, VENDOR, DRIVER, RETAILER]
+POST /nfc-tags/:uid/validate-integrity [ADMIN, TECHNICIAN, VENDOR, DRIVER, RETAILER]
+POST /nfc-tags/:uid/lock    [ADMIN]
+POST /nfc-tags/:uid/deactivate [ADMIN]
+```
+
+### Visits (5 endpoints)
+```
+POST /visits/check-in       [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
+POST /visits/:id/check-out  [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
+GET /visits/open            [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
+GET /visits/user/:userId    [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
+GET /visits/:id             [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
+```
+
+### Tickets (8 endpoints)
+```
+POST /tickets               [ADMIN, TECHNICIAN, VENDOR, RETAILER]
+GET /tickets                [ADMIN, TECHNICIAN, VENDOR, RETAILER]
+GET /tickets/open           [ADMIN, TECHNICIAN, VENDOR, RETAILER]
+GET /tickets/metrics        [ADMIN]
+GET /tickets/sla            [ADMIN]
+GET /tickets/:id            [ADMIN, TECHNICIAN, VENDOR, RETAILER]
+PATCH /tickets/:id          [ADMIN, TECHNICIAN]
+POST /tickets/:id/resolve   [ADMIN, TECHNICIAN]
+```
+
+### Work Orders (7 endpoints)
+```
+POST /work-orders           [ADMIN]
+GET /work-orders            [ADMIN, DRIVER, TECHNICIAN, VENDOR, RETAILER]
+GET /work-orders/:id        [ADMIN, DRIVER, TECHNICIAN, VENDOR, RETAILER]
+POST /work-orders/:id/validate-nfc [ADMIN, DRIVER, TECHNICIAN, RETAILER]
+POST /work-orders/:id/deliver [ADMIN, DRIVER, TECHNICIAN, RETAILER]
+PATCH /work-orders/:id      [ADMIN, DRIVER]
+DELETE /work-orders/:id     [ADMIN]
+```
+
+### Attachments (7 endpoints)
+```
+POST /attachments           [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
+GET /attachments/visit/:id  [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
+GET /attachments/work-order/:id [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
+GET /attachments/ticket/:id [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
+GET /attachments/:id        [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
+POST /attachments/validate-type [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
+DELETE /attachments/:id     [ADMIN]
+```
+
+### Sync Queue (7 endpoints)
+```
+POST /sync-queue            [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
+GET /sync-queue/pending     [ADMIN, TECHNICIAN]
+GET /sync-queue/retry-needed [ADMIN]
+GET /sync-queue/stats       [ADMIN]
+GET /sync-queue/:id         [ADMIN, TECHNICIAN]
+POST /sync-queue/:id/mark-synced [ADMIN, TECHNICIAN]
+POST /sync-queue/:id/mark-failed [ADMIN, TECHNICIAN]
+```
+
+## Roles de Usuario
+
+| Rol | Descripción |
+|-----|-------------|
+| ADMIN | Administrador del tenant, acceso total |
+| TECHNICIAN | Técnico de servicio, hace check-in/out |
+| DRIVER | Conductor, entrega y retira máquinas |
+| VENDOR | Vendedor, reporta tickets |
+| RETAILER | Minorista, cliente final |
+| SUPPORT | Soporte técnico interno |
+
+## Autenticación
+
+Todas las peticiones (excepto login) requieren:
+
+```
+Headers:
+  Authorization: Bearer <JWT_TOKEN>
+  X-Tenant-Id: <TENANT_UUID>
+```
+
+## Desarrollo
 
 ```bash
-# development
-$ npm run start
+# Compilar
+npm run build
 
-# watch mode
-$ npm run start:dev
+# Lint
+npm run lint
 
-# production mode
-$ npm run start:prod
+# Tests
+npx ts-node scripts/seed.ts
+powershell -ExecutionPolicy Bypass -File test_all_endpoints.ps1
 ```
 
-## Run tests
+## Base de Datos
 
-```bash
-# unit tests
-$ npm run test
+Ver documentación completa en `SCHEMA_BD_FRIOCHECK.txt`
 
-# e2e tests
-$ npm run test:e2e
+## Licencia
 
-# test coverage
-$ npm run test:cov
-```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+Privado - FrioCheck

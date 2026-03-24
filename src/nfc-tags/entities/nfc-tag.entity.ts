@@ -3,6 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
   OneToOne,
@@ -14,6 +16,12 @@ import { Machine } from '../../machines/entities/machine.entity';
 export class NfcTag {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ name: 'tenant_id', type: 'uuid' })
+  tenant_id: string;
+
+  @Column({ name: 'machine_id', type: 'uuid' })
+  machine_id: string;
 
   @OneToOne(() => Machine)
   @JoinColumn({ name: 'machine_id' })
@@ -29,9 +37,6 @@ export class NfcTag {
 
   @Column({ name: 'tag_model', length: 20, default: 'NTAG-215' })
   tagModel: string;
-
-  @Column({ name: 'housing', length: 20, default: 'PET' })
-  housing: string;
 
   // SID (Serial ID): Identificador único de serie de la máquina para vinculación del activo físico
   @Column({ name: 'machine_serial_id', length: 255 })
@@ -53,4 +58,10 @@ export class NfcTag {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 }

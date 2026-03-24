@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -11,25 +12,28 @@ import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
 
 export enum SyncOperationType {
-  VISIT_CHECK_IN = 'visit_check_in',
-  VISIT_CHECK_OUT = 'visit_check_out',
-  WORK_ORDER_DELIVERY = 'work_order_delivery',
-  TICKET_REPORT = 'ticket_report',
-  TICKET_UPDATE = 'ticket_update',
-  ATTACHMENT_UPLOAD = 'attachment_upload',
+  CREATE = 'CREATE',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
 }
 
 export enum SyncStatus {
-  PENDIENTE = 'pendiente',
-  SINCRONIZADO = 'sincronizado',
-  FALLIDO = 'fallido',
-  REVISION_MANUAL = 'revision_manual',
+  PENDIENTE = 'PENDIENTE',
+  SINCRONIZADO = 'SINCRONIZADO',
+  FALLIDO = 'FALLIDO',
+  REVISION_MANUAL = 'REVISION_MANUAL',
 }
 
 @Entity('sync_queue')
 export class SyncQueue {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ name: 'tenant_id', type: 'uuid' })
+  tenant_id: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  user_id: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
@@ -40,6 +44,7 @@ export class SyncQueue {
   user: User;
 
   @Column({
+    name: 'operation_type',
     type: 'enum',
     enum: SyncOperationType,
   })
@@ -60,22 +65,16 @@ export class SyncQueue {
   @Column({ name: 'retry_count', default: 0 })
   retryCount: number;
 
-  @Column({ name: 'max_retries', default: 3 })
-  maxRetries: number;
-
   // Error tracking
-  @Column({ name: 'error_message', type: 'text', nullable: true })
-  errorMessage: string;
-
-  @Column({ name: 'error_stack', type: 'text', nullable: true })
-  errorStack: string;
+  @Column({ name: 'last_error', type: 'text', nullable: true })
+  lastError: string;
 
   // Sincronización
   @Column({ name: 'synced_at', nullable: true })
   syncedAt: Date;
 
   // Referencia a la entidad creada después de sincronizar
-  @Column({ name: 'entity_id', length: 100, nullable: true })
+  @Column({ name: 'entity_id', type: 'uuid', nullable: true })
   entityId: string;
 
   @Column({ name: 'entity_type', length: 50, nullable: true })
@@ -88,6 +87,6 @@ export class SyncQueue {
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
 
-  @Column({ name: 'next_retry_at', nullable: true })
-  nextRetryAt: Date;
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 }

@@ -18,6 +18,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { TenantGuard } from '../auth/guards/tenant.guard';
 import { RequireRoles } from '../auth/decorators/require-roles.decorator';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
+import { CurrentTenant } from '../auth/decorators/current-tenant.decorator';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
@@ -27,26 +28,27 @@ export class UsersController {
   @Post()
   @RequireRoles('ADMIN')
   @HttpCode(HttpStatus.CREATED)
-  create(@Body() createUserDto: CreateUserDto, @CurrentUser() user: any) {
-    return this.usersService.create(createUserDto, user.tenantId);
+  create(@Body() createUserDto: CreateUserDto, @CurrentTenant() tenantId: string) {
+    return this.usersService.create(createUserDto, tenantId);
   }
 
   @Get()
   @RequireRoles('ADMIN')
-  findAll(@Query('tenantId') tenantId?: string) {
+  findAll(@CurrentTenant() tenantId: string) {
     return this.usersService.findAll(tenantId);
+  }
+
+  // Specific routes BEFORE generic :id
+  @Get('email/:email')
+  @RequireRoles('ADMIN')
+  findByEmail(@Param('email') email: string) {
+    return this.usersService.findByEmail(email);
   }
 
   @Get(':id')
   @RequireRoles('ADMIN')
   findById(@Param('id') id: string) {
     return this.usersService.findById(id);
-  }
-
-  @Get('email/:email')
-  @RequireRoles('ADMIN')
-  findByEmail(@Param('email') email: string) {
-    return this.usersService.findByEmail(email);
   }
 
   @Patch(':id')

@@ -3,6 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
@@ -32,6 +34,12 @@ export class Attachment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  @Column({ name: 'tenant_id', type: 'uuid' })
+  tenant_id: string;
+
+  @Column({ name: 'uploaded_by_id', type: 'uuid' })
+  uploaded_by_id: string;
+
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
@@ -39,6 +47,16 @@ export class Attachment {
   @ManyToOne(() => User)
   @JoinColumn({ name: 'uploaded_by_id' })
   uploadedBy: User;
+
+  // Explicit FK columns for direct assignment
+  @Column({ name: 'visit_id', type: 'uuid', nullable: true })
+  visit_id: string;
+
+  @Column({ name: 'work_order_id', type: 'uuid', nullable: true })
+  work_order_id: string;
+
+  @Column({ name: 'ticket_id', type: 'uuid', nullable: true })
+  ticket_id: string;
 
   // Relationships to different entities (nullable - can attach to multiple types)
   @ManyToOne(() => Visit, (visit) => visit.attachments, { nullable: true })
@@ -91,4 +109,10 @@ export class Attachment {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 }

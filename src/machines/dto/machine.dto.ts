@@ -3,14 +3,15 @@ import {
   IsUUID,
   IsOptional,
   IsEnum,
-  IsDecimal,
+  IsNumber,
   IsDate,
 } from 'class-validator';
 import { MachineStatus } from '../entities/machine.entity';
 
 export class CreateMachineDto {
+  @IsOptional()
   @IsUUID()
-  tenantId: string;
+  tenantId?: string;
 
   @IsString()
   model: string;
@@ -26,12 +27,16 @@ export class CreateMachineDto {
   locationName: string;
 
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   locationLat?: number;
 
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   locationLng?: number;
+
+  @IsOptional()
+  @IsEnum(MachineStatus)
+  status?: MachineStatus;
 
   @IsOptional()
   @IsUUID()
@@ -48,11 +53,11 @@ export class UpdateMachineDto {
   locationName?: string;
 
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   locationLat?: number;
 
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   locationLng?: number;
 
   @IsOptional()
@@ -85,11 +90,11 @@ export class MachineResponseDto {
   locationName: string;
 
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   locationLat?: number;
 
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   locationLng?: number;
 
   @IsEnum(MachineStatus)

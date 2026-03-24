@@ -2,6 +2,7 @@ import { IsString, IsUUID, IsOptional } from 'class-validator';
 
 export class CreateNfcTagDto {
   @IsUUID()
+  @IsOptional()
   tenantId: string;
 
   @IsUUID()
@@ -11,13 +12,20 @@ export class CreateNfcTagDto {
   uid: string;
 
   @IsString()
-  machineSerialId: string;
+  @IsOptional()
+  machineSerialId?: string;
 
   @IsString()
-  tenantIdObfuscated: string;
+  @IsOptional()
+  tenantIdObfuscated?: string;
 
   @IsString()
-  integrityChecksum: string;
+  @IsOptional()
+  integrityChecksum?: string;
+
+  @IsString()
+  @IsOptional()
+  tagModel?: string;
 }
 
 export class NfcTagResponseDto {
@@ -35,9 +43,6 @@ export class NfcTagResponseDto {
 
   @IsString()
   tagModel: string;
-
-  @IsString()
-  housing: string;
 
   @IsString()
   machineSerialId: string;

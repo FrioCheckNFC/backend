@@ -16,8 +16,8 @@ export class VisitsService {
     // Validar que no haya una visita abierta para este usuario+máquina
     const openVisit = await this.visitRepository.findOne({
       where: {
-        user: { id: checkInVisitDto.userId },
-        machine: { id: checkInVisitDto.machineId },
+        user_id: checkInVisitDto.userId,
+        machine_id: checkInVisitDto.machineId,
         status: VisitStatus.ABIERTA,
       },
     });
@@ -27,12 +27,13 @@ export class VisitsService {
     }
 
     const visit = this.visitRepository.create({
-      tenant: { id: checkInVisitDto.tenantId },
-      user: { id: checkInVisitDto.userId },
-      machine: { id: checkInVisitDto.machineId },
+      tenant_id: checkInVisitDto.tenantId,
+      user_id: checkInVisitDto.userId,
+      machine_id: checkInVisitDto.machineId,
       checkInNfcUid: checkInVisitDto.checkInNfcUid,
       checkInGpsLat: checkInVisitDto.checkInGpsLat,
       checkInGpsLng: checkInVisitDto.checkInGpsLng,
+      checkInTimestamp: new Date(),
       status: VisitStatus.ABIERTA,
     });
 
@@ -52,6 +53,12 @@ export class VisitsService {
     // Validar que el NFC coincida
     const nfcMatches = visit.checkInNfcUid === checkOutVisitDto.checkOutNfcUid;
 
+    if (!nfcMatches) {
+      throw new BadRequestException(
+        'NFC validation failed: Check-out NFC UID does not match check-in NFC UID. Possible fraud detected.',
+      );
+    }
+
     visit.checkOutTimestamp = new Date();
     visit.checkOutNfcUid = checkOutVisitDto.checkOutNfcUid;
     visit.checkOutGpsLat = checkOutVisitDto.checkOutGpsLat;
@@ -61,9 +68,14 @@ export class VisitsService {
     return this.visitRepository.save(visit);
   }
 
-  async findById(id: string): Promise<Visit> {
+  async findById(id: string, tenantId?: string): Promise<Visit> {
+    const where: any = { id };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
+
     const visit = await this.visitRepository.findOne({
-      where: { id },
+      where,
       relations: ['user', 'machine', 'tenant', 'attachments'],
     });
 

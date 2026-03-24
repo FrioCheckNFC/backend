@@ -3,6 +3,8 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
   OneToMany,
@@ -23,6 +25,17 @@ export class Visit {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
+  // Foreign Key Columns (para poder setearlos directamente)
+  @Column({ name: 'tenant_id', type: 'uuid' })
+  tenant_id: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  user_id: string;
+
+  @Column({ name: 'machine_id', type: 'uuid' })
+  machine_id: string;
+
+  // Relations
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
@@ -91,10 +104,20 @@ export class Visit {
   })
   status: VisitStatus;
 
-  @CreateDateColumn({ name: 'created_at' })
-  @OneToMany(() => Attachment, (attachment) => attachment.visit)
-  attachments: Attachment[];
+  @Column({ name: 'is_valid', default: true })
+  isValid: boolean;
 
+  @Column({ name: 'validation_notes', type: 'text', nullable: true })
+  validationNotes: string;
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
+
+  @OneToMany(() => Attachment, (attachment) => attachment.visit)
+  attachments: Attachment[];
 }

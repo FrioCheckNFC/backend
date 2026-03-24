@@ -21,8 +21,11 @@ export class Tenant {
   @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ name: 'active', default: true })
-  active: boolean;
+  @Column({ name: 'logo_url', type: 'varchar', nullable: true })
+  logoUrl?: string;
+
+  @Column({ name: 'is_active', default: true })
+  isActive: boolean;
 
   @CreateDateColumn({ name: 'created_at' })
   created_at: Date;

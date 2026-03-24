@@ -2,11 +2,12 @@ import {
   IsString,
   IsUUID,
   IsEnum,
-  IsDecimal,
+  IsNumber,
   IsDate,
   IsOptional,
   IsBoolean,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { WorkOrderStatus, WorkOrderType } from '../entities/work-order.entity';
 
 export class CreateWorkOrderDto {
@@ -25,12 +26,13 @@ export class CreateWorkOrderDto {
   @IsString()
   expectedNfcUid: string;
 
-  @IsDecimal()
+  @IsNumber()
   expectedLocationLat: number;
 
-  @IsDecimal()
+  @IsNumber()
   expectedLocationLng: number;
 
+  @Type(() => Date)
   @IsDate()
   estimatedDeliveryDate: Date;
 
@@ -53,11 +55,11 @@ export class UpdateWorkOrderDto {
   actualNfcUid?: string;
 
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   actualLocationLat?: number;
 
   @IsOptional()
-  @IsDecimal()
+  @IsNumber()
   actualLocationLng?: number;
 
   @IsOptional()

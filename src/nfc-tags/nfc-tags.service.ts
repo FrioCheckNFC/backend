@@ -23,13 +23,40 @@ export class NfcTagsService {
       );
     }
 
-    const nfcTag = this.nfcTagRepository.create(createNfcTagDto);
+    // Generar valores por defecto si no se proporcionan
+    const nfcTagData = {
+      uid: createNfcTagDto.uid,
+      tagModel: createNfcTagDto.tagModel || 'NTAG-215',
+      machineSerialId: createNfcTagDto.machineSerialId || `SID-${createNfcTagDto.uid.substring(0, 8)}`,
+      tenantIdObfuscated: createNfcTagDto.tenantIdObfuscated || `TENANT-${createNfcTagDto.tenantId.substring(0, 8)}`,
+      integrityChecksum: createNfcTagDto.integrityChecksum || this.generateChecksum(createNfcTagDto.uid),
+      tenant: { id: createNfcTagDto.tenantId },
+      machine: { id: createNfcTagDto.machineId },
+    };
+
+    const nfcTag = this.nfcTagRepository.create(nfcTagData);
     return this.nfcTagRepository.save(nfcTag);
   }
 
-  async findByUid(uid: string): Promise<NfcTag> {
+  private generateChecksum(uid: string): string {
+    // Generar un checksum simple basado en el UID
+    let hash = 0;
+    for (let i = 0; i < uid.length; i++) {
+      const char = uid.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(16).substring(0, 16);
+  }
+
+  async findByUid(uid: string, tenantId?: string): Promise<NfcTag> {
+    const where: any = { uid };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
+
     const nfcTag = await this.nfcTagRepository.findOne({
-      where: { uid },
+      where,
       relations: ['machine', 'tenant'],
     });
 
@@ -40,9 +67,14 @@ export class NfcTagsService {
     return nfcTag;
   }
 
-  async findByMachineId(machineId: string): Promise<NfcTag> {
+  async findByMachineId(machineId: string, tenantId?: string): Promise<NfcTag> {
+    const where: any = { machine: { id: machineId } };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
+
     const nfcTag = await this.nfcTagRepository.findOne({
-      where: { machine: { id: machineId } },
+      where,
       relations: ['machine', 'tenant'],
     });
 
@@ -66,21 +98,21 @@ export class NfcTagsService {
     return query.getMany();
   }
 
-  async lockTag(uid: string): Promise<NfcTag> {
-    const nfcTag = await this.findByUid(uid);
+  async lockTag(uid: string, tenantId?: string): Promise<NfcTag> {
+    const nfcTag = await this.findByUid(uid, tenantId);
     nfcTag.isLocked = true;
     return this.nfcTagRepository.save(nfcTag);
   }
 
-  async deactivateTag(uid: string): Promise<NfcTag> {
-    const nfcTag = await this.findByUid(uid);
+  async deactivateTag(uid: string, tenantId?: string): Promise<NfcTag> {
+    const nfcTag = await this.findByUid(uid, tenantId);
     nfcTag.isActive = false;
     return this.nfcTagRepository.save(nfcTag);
   }
 
   // Validar integridad del tag
-  async validateIntegrity(uid: string, checksum: string): Promise<boolean> {
-    const nfcTag = await this.findByUid(uid);
+  async validateIntegrity(uid: string, checksum: string, tenantId?: string): Promise<boolean> {
+    const nfcTag = await this.findByUid(uid, tenantId);
     return nfcTag.integrityChecksum === checksum;
   }
 }

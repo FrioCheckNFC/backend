@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
   OneToMany,
@@ -33,6 +34,18 @@ export enum WorkOrderType {
 export class WorkOrder {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ name: 'tenant_id', type: 'uuid' })
+  tenant_id: string;
+
+  @Column({ name: 'machine_id', type: 'uuid' })
+  machine_id: string;
+
+  @Column({ name: 'assigned_user_id', type: 'uuid' })
+  assigned_user_id: string;
+
+  @Column({ name: 'visit_id', type: 'uuid', nullable: true })
+  visit_id: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
@@ -121,7 +134,7 @@ export class WorkOrder {
   description: string;
 
   @Column({ name: 'rejection_reason', length: 500, nullable: true })
-  rejectionReason: string;
+  rejectionReason?: string;
 
   // Signature/Conformity
   @Column({ name: 'signed_by', length: 100, nullable: true })
@@ -139,4 +152,7 @@ export class WorkOrder {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 }

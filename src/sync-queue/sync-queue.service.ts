@@ -14,9 +14,13 @@ export class SyncQueueService {
   // Encolar una operación offline
   async enqueue(createSyncQueueDto: CreateSyncQueueDto): Promise<SyncQueue> {
     const syncItem = this.syncQueueRepository.create({
-      ...createSyncQueueDto,
+      tenant_id: createSyncQueueDto.tenantId,
+      user_id: createSyncQueueDto.userId,
+      operationType: createSyncQueueDto.operationType,
+      payload: createSyncQueueDto.payload,
       status: SyncStatus.PENDIENTE,
       retryCount: 0,
+      entityType: createSyncQueueDto.operationType,
     });
 
     return this.syncQueueRepository.save(syncItem);
@@ -36,14 +40,12 @@ export class SyncQueueService {
 
   // Obtener operaciones que necesitan reintento
   async getOperationsForRetry(): Promise<SyncQueue[]> {
-    const now = new Date();
     return this.syncQueueRepository.find({
       where: {
         status: SyncStatus.FALLIDO,
-        nextRetryAt: LessThan(now),
       },
       relations: ['user', 'tenant'],
-      order: { nextRetryAt: 'ASC' },
+      order: { updatedAt: 'ASC' },
     });
   }
 
@@ -69,20 +71,8 @@ export class SyncQueueService {
     const syncItem = await this.findById(id);
 
     syncItem.retryCount += 1;
-    syncItem.errorMessage = typeof error === 'string' ? error : error.message;
-    syncItem.errorStack = stackTrace || '';
-
-    if (syncItem.retryCount >= syncItem.maxRetries) {
-      syncItem.status = SyncStatus.REVISION_MANUAL;
-    } else {
-      syncItem.status = SyncStatus.FALLIDO;
-      // Programar siguiente intento (exponential backoff: 60s, 300s, 900s)
-      const delays = [60, 300, 900];
-      const delaySeconds = delays[Math.min(syncItem.retryCount - 1, 2)];
-      const nextRetry = new Date();
-      nextRetry.setSeconds(nextRetry.getSeconds() + delaySeconds);
-      syncItem.nextRetryAt = nextRetry;
-    }
+    syncItem.lastError = typeof error === 'string' ? error : error.message;
+    syncItem.status = syncItem.retryCount >= 3 ? SyncStatus.REVISION_MANUAL : SyncStatus.FALLIDO;
 
     return this.syncQueueRepository.save(syncItem);
   }

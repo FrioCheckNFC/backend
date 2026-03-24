@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
@@ -13,16 +14,23 @@ import { User } from '../../users/entities/user.entity';
 import { NfcTag } from '../../nfc-tags/entities/nfc-tag.entity';
 
 export enum MachineStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  EN_RETIRO = 'en_retiro',
-  EN_TRANSITO = 'en_transito',
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  IN_TRANSIT = 'IN_TRANSIT',
+  MAINTENANCE = 'MAINTENANCE',
+  DECOMMISSIONED = 'DECOMMISSIONED',
 }
 
 @Entity('machines')
 export class Machine {
   @PrimaryGeneratedColumn('uuid')
   id: string;
+
+  @Column({ name: 'tenant_id', type: 'uuid' })
+  tenant_id: string;
+
+  @Column({ name: 'assigned_user_id', type: 'uuid', nullable: true })
+  assigned_user_id: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
@@ -62,6 +70,9 @@ export class Machine {
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
 
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;

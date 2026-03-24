@@ -15,12 +15,14 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { TenantGuard } from '../auth/guards/tenant.guard';
 import { RequireRoles } from '../auth/decorators/require-roles.decorator';
+import { CurrentTenant } from '../auth/decorators/current-tenant.decorator';
 
 @Controller('visits')
 @UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
 export class VisitsController {
   constructor(private readonly visitsService: VisitsService) {}
 
+  // POST routes first (non-conflicting)
   @Post('check-in')
   @RequireRoles('ADMIN', 'TECHNICIAN', 'DRIVER', 'VENDOR', 'RETAILER')
   @HttpCode(HttpStatus.CREATED)
@@ -40,24 +42,26 @@ export class VisitsController {
     return this.visitsService.checkOut(checkOutVisitDto);
   }
 
-  @Get(':id')
+  // Specific GET routes BEFORE generic :id route
+  @Get('open')
   @RequireRoles('TECHNICIAN', 'DRIVER', 'VENDOR', 'RETAILER', 'ADMIN')
-  findById(@Param('id') id: string) {
-    return this.visitsService.findById(id);
+  findOpenVisits(@CurrentTenant() tenantId: string) {
+    return this.visitsService.findOpenVisits(tenantId);
   }
 
   @Get('user/:userId')
   @RequireRoles('TECHNICIAN', 'DRIVER', 'VENDOR', 'RETAILER', 'ADMIN')
   findByUser(
     @Param('userId') userId: string,
-    @Query('tenantId') tenantId: string,
+    @CurrentTenant() tenantId: string,
   ) {
     return this.visitsService.findByUser(userId, tenantId);
   }
 
-  @Get('open')
+  // Generic route AFTER specific ones
+  @Get(':id')
   @RequireRoles('TECHNICIAN', 'DRIVER', 'VENDOR', 'RETAILER', 'ADMIN')
-  findOpenVisits(@Query('tenantId') tenantId: string) {
-    return this.visitsService.findOpenVisits(tenantId);
+  findById(@Param('id') id: string, @CurrentTenant() tenantId: string) {
+    return this.visitsService.findById(id, tenantId);
   }
 }

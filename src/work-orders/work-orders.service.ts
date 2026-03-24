@@ -12,10 +12,22 @@ export class WorkOrdersService {
   ) {}
 
   async create(createWorkOrderDto: CreateWorkOrderDto): Promise<WorkOrder> {
-    const workOrder = this.workOrderRepository.create({
-      ...createWorkOrderDto,
-      status: WorkOrderStatus.PENDIENTE,
-    });
+    const workOrder = this.workOrderRepository.create();
+    workOrder.tenant_id = createWorkOrderDto.tenantId;
+    workOrder.machine_id = createWorkOrderDto.machineId;
+    workOrder.assigned_user_id = createWorkOrderDto.assignedUserId;
+    workOrder.type = createWorkOrderDto.type;
+    workOrder.expectedNfcUid = createWorkOrderDto.expectedNfcUid;
+    workOrder.expectedLocationLat = createWorkOrderDto.expectedLocationLat;
+    workOrder.expectedLocationLng = createWorkOrderDto.expectedLocationLng;
+    workOrder.estimatedDeliveryDate = createWorkOrderDto.estimatedDeliveryDate;
+    workOrder.status = WorkOrderStatus.PENDIENTE;
+    if (createWorkOrderDto.description) {
+      workOrder.description = createWorkOrderDto.description;
+    }
+    if (createWorkOrderDto.visitId) {
+      workOrder.visit_id = createWorkOrderDto.visitId;
+    }
 
     return this.workOrderRepository.save(workOrder);
   }
@@ -36,9 +48,14 @@ export class WorkOrdersService {
     return query.orderBy('workOrder.created_at', 'DESC').getMany();
   }
 
-  async findById(id: string): Promise<WorkOrder> {
+  async findById(id: string, tenantId?: string): Promise<WorkOrder> {
+    const where: any = { id };
+    if (tenantId) {
+      where.tenant = { id: tenantId };
+    }
+
     const workOrder = await this.workOrderRepository.findOne({
-      where: { id },
+      where,
       relations: ['machine', 'assignedUser', 'visit', 'attachments', 'tenant'],
     });
 
@@ -53,8 +70,9 @@ export class WorkOrdersService {
   async validateNfcOnArrival(
     workOrderId: string,
     actualNfcUid: string,
+    tenantId?: string,
   ): Promise<WorkOrder> {
-    const workOrder = await this.findById(workOrderId);
+    const workOrder = await this.findById(workOrderId, tenantId);
 
     if (workOrder.status !== WorkOrderStatus.PENDIENTE) {
       throw new BadRequestException('WorkOrder is not in pending status');
@@ -78,8 +96,8 @@ export class WorkOrdersService {
     return this.workOrderRepository.save(workOrder);
   }
 
-  async markAsDelivered(id: string, updateDto: UpdateWorkOrderDto): Promise<WorkOrder> {
-    const workOrder = await this.findById(id);
+  async markAsDelivered(id: string, updateDto: UpdateWorkOrderDto, tenantId?: string): Promise<WorkOrder> {
+    const workOrder = await this.findById(id, tenantId);
 
     if (!workOrder.nfcValidated) {
       throw new BadRequestException('WorkOrder NFC must be validated before delivery');
@@ -96,5 +114,10 @@ export class WorkOrdersService {
     const workOrder = await this.findById(id);
     Object.assign(workOrder, updateDto);
     return this.workOrderRepository.save(workOrder);
+  }
+
+  async delete(id: string): Promise<void> {
+    const workOrder = await this.findById(id);
+    await this.workOrderRepository.softRemove(workOrder);
   }
 }

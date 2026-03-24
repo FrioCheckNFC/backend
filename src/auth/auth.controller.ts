@@ -1,19 +1,26 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { TenantGuard } from './guards/tenant.guard';
+import { RequireRoles } from './decorators/require-roles.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
+  @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(loginDto.email, loginDto.password);
     return this.authService.login(user);
   }
 
   @Post('register')
+  @UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
+  @RequireRoles('ADMIN')
+  @HttpCode(HttpStatus.CREATED)
   async register(@Body() registerDto: RegisterDto) {
     const newUser = await this.authService.register(
       registerDto.email,
@@ -21,7 +28,7 @@ export class AuthController {
       registerDto.firstName,
       registerDto.lastName,
       registerDto.tenantId,
-      registerDto.role || 'TECNICO',
+      registerDto.role || 'TECHNICIAN',
     );
     return {
       message: 'Usuario registrado exitosamente',
@@ -31,7 +38,8 @@ export class AuthController {
 
   @Post('validate-token')
   @UseGuards(JwtAuthGuard)
-  validateToken(@Body() body: any) {
+  @HttpCode(HttpStatus.OK)
+  validateToken() {
     return { valid: true, message: 'Token válido' };
   }
 }
