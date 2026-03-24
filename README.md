@@ -72,8 +72,10 @@ nfcproject/
 │   ├── seed.ts            # Crear datos iniciales
 │   └── cleanup.ts         # Limpiar base de datos
 ├── docker-compose.yml     # Servicios Docker
+├── docs/
+│   └── SCHEMA_BD_FRIOCHECK.txt # Documentación del esquema
 ├── .env.example           # Variables de entorno
-└── SCHEMA_BD_FRIOCHECK.txt # Documentación del esquema
+└── test_all_endpoints.ps1 # Script de pruebas
 ```
 
 ## Módulos y Endpoints
@@ -219,7 +221,7 @@ powershell -ExecutionPolicy Bypass -File test_all_endpoints.ps1
 
 ## Base de Datos
 
-Ver documentación completa en `SCHEMA_BD_FRIOCHECK.txt`
+Ver documentación completa en `docs/SCHEMA_BD_FRIOCHECK.txt`
 
 ## Licencia
 
