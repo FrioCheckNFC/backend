@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Visit, VisitStatus } from './entities/visit.entity';
 import { CheckInVisitDto, CheckOutVisitDto } from './dto/visit.dto';
+import { NfcTag } from '../nfc-tags/entities/nfc-tag.entity';
 
 @Injectable()
 export class VisitsService {
   constructor(
     @InjectRepository(Visit)
     private readonly visitRepository: Repository<Visit>,
+    @InjectRepository(NfcTag)
+    private readonly nfcTagRepository: Repository<NfcTag>,
   ) {}
 
   // Check-in: Abre una visita con primer escaneo NFC + GPS
@@ -24,6 +27,26 @@ export class VisitsService {
 
     if (openVisit) {
       throw new BadRequestException('User already has an open visit for this machine');
+    }
+
+    // Auto-registrar NFC si no existe
+    const existingNfc = await this.nfcTagRepository.findOne({
+      where: { uid: checkInVisitDto.checkInNfcUid },
+    });
+
+    if (!existingNfc) {
+      const newNfcTag = this.nfcTagRepository.create({
+        tenant_id: checkInVisitDto.tenantId,
+        machine_id: checkInVisitDto.machineId,
+        uid: checkInVisitDto.checkInNfcUid,
+        tagModel: 'NTAG-215',
+        machineSerialId: 'AUTO-REGISTERED',
+        tenantIdObfuscated: checkInVisitDto.tenantId.substring(0, 8),
+        integrityChecksum: `checksum-${Date.now()}`,
+        isLocked: false,
+        isActive: true,
+      } as any);
+      await this.nfcTagRepository.save(newNfcTag);
     }
 
     const visit = this.visitRepository.create({
