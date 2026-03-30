@@ -55,10 +55,10 @@ export class Machine {
   @Column({ name: 'location_name', length: 200 })
   locationName: string;
 
-  @Column({ name: 'location_lat', type: 'decimal', precision: 10, scale: 7, nullable: true })
+  @Column({ name: 'location_lat', type: 'decimal', precision: 10, scale: 8, nullable: true })
   locationLat: number;
 
-  @Column({ name: 'location_lng', type: 'decimal', precision: 10, scale: 7, nullable: true })
+  @Column({ name: 'location_lng', type: 'decimal', precision: 11, scale: 8, nullable: true })
   locationLng: number;
 
   @Column({

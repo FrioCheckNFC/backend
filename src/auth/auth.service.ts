@@ -7,19 +7,43 @@ import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
+  private static readonly BCRYPT_ROUNDS = 10;
+  private static readonly BCRYPT_HASH_REGEX = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
+  private validateRawCredentialInput(identifier: string, password: string): void {
+    // Enforce exact credential matching by rejecting accidental surrounding spaces.
+    if (identifier !== identifier.trim()) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    if (password !== password.trim()) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+  }
+
+  private isBcryptHash(value: string): boolean {
+    return AuthService.BCRYPT_HASH_REGEX.test(value);
+  }
+
+  async validateUser(identifier: string, password: string): Promise<any> {
+    this.validateRawCredentialInput(identifier, password);
+
     const user = await this.usersRepository.findOne({
-      where: { email },
+      where: [{ email: identifier }, { rut: identifier }],
       relations: ['tenant'],
     });
 
     if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    if (!this.isBcryptHash(user.password_hash)) {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
@@ -57,12 +81,19 @@ export class AuthService {
   }
 
   async register(email: string, password: string, firstName: string, lastName: string, tenantId: string, role: string = 'TECNICO') {
+    this.validateRawCredentialInput(email, password);
+
     const existingUser = await this.usersRepository.findOne({ where: { email } });
     if (existingUser) {
       throw new UnauthorizedException('El email ya está registrado');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, AuthService.BCRYPT_ROUNDS);
+
+    if (!this.isBcryptHash(hashedPassword)) {
+      throw new UnauthorizedException('No se pudo registrar el usuario');
+    }
+
     const newUser = this.usersRepository.create({
       email,
       password_hash: hashedPassword,

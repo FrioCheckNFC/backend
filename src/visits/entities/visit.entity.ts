@@ -66,15 +66,15 @@ export class Visit {
     name: 'check_in_gps_lat',
     type: 'decimal',
     precision: 10,
-    scale: 7,
+    scale: 8,
   })
   checkInGpsLat: number;
 
   @Column({
     name: 'check_in_gps_lng',
     type: 'decimal',
-    precision: 10,
-    scale: 7,
+    precision: 11,
+    scale: 8,
   })
   checkInGpsLng: number;
 
@@ -82,7 +82,7 @@ export class Visit {
     name: 'check_out_gps_lat',
     type: 'decimal',
     precision: 10,
-    scale: 7,
+    scale: 8,
     nullable: true,
   })
   checkOutGpsLat: number;
@@ -90,8 +90,8 @@ export class Visit {
   @Column({
     name: 'check_out_gps_lng',
     type: 'decimal',
-    precision: 10,
-    scale: 7,
+    precision: 11,
+    scale: 8,
     nullable: true,
   })
   checkOutGpsLng: number;

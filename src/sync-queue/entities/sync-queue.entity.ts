@@ -12,9 +12,12 @@ import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
 
 export enum SyncOperationType {
-  CREATE = 'CREATE',
-  UPDATE = 'UPDATE',
-  DELETE = 'DELETE',
+  VISIT_CHECKIN = 'visit_check_in',
+  VISIT_CHECKOUT = 'visit_check_out',
+  WORK_ORDER_DELIVERY = 'work_order_delivery',
+  TICKET_REPORT = 'ticket_report',
+  TICKET_UPDATE = 'ticket_update',
+  ATTACHMENT_UPLOAD = 'attachment_upload',
 }
 
 export enum SyncStatus {
@@ -65,9 +68,17 @@ export class SyncQueue {
   @Column({ name: 'retry_count', default: 0 })
   retryCount: number;
 
-  // Error tracking
-  @Column({ name: 'last_error', type: 'text', nullable: true })
-  lastError: string;
+  @Column({ name: 'max_retries', default: 3 })
+  maxRetries: number;
+
+  @Column({ name: 'error_message', type: 'text', nullable: true })
+  errorMessage: string;
+
+  @Column({ name: 'error_stack', type: 'text', nullable: true })
+  errorStack: string;
+
+  @Column({ name: 'next_retry_at', nullable: true })
+  nextRetryAt: Date;
 
   // Sincronización
   @Column({ name: 'synced_at', nullable: true })

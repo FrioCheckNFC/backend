@@ -7,16 +7,35 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
+  private static readonly BCRYPT_ROUNDS = 10;
+  private static readonly BCRYPT_HASH_REGEX = /^\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53}$/;
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
   ) {}
 
+  private validateRawCredentialInput(email: string, password: string): void {
+    if (email !== email.trim()) {
+      throw new BadRequestException('El email no debe tener espacios al inicio o final');
+    }
+
+    if (password !== password.trim()) {
+      throw new BadRequestException('La contraseña no debe tener espacios al inicio o final');
+    }
+  }
+
+  private isBcryptHash(value: string): boolean {
+    return UsersService.BCRYPT_HASH_REGEX.test(value);
+  }
+
   private async hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, 10);
+    return bcrypt.hash(password, UsersService.BCRYPT_ROUNDS);
   }
 
   async create(createUserDto: CreateUserDto, tenantId?: string): Promise<User> {
+    this.validateRawCredentialInput(createUserDto.email, createUserDto.password);
+
     const existingUser = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     });
@@ -37,6 +56,11 @@ export class UsersService {
     user.phone = createUserDto.phone;
     user.role = createUserDto.role;
     user.password_hash = await this.hashPassword(createUserDto.password);
+
+    if (!this.isBcryptHash(user.password_hash)) {
+      throw new BadRequestException('No se pudo generar un hash válido para la contraseña');
+    }
+
     user.active = true;
     user.tenant_id = finalTenantId;
 
@@ -72,7 +96,12 @@ export class UsersService {
   async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
     const user = await this.findById(id);
     if (updateUserDto.password) {
+      this.validateRawCredentialInput(user.email, updateUserDto.password);
       user.password_hash = await this.hashPassword(updateUserDto.password);
+
+      if (!this.isBcryptHash(user.password_hash)) {
+        throw new BadRequestException('No se pudo generar un hash válido para la contraseña');
+      }
     }
     Object.assign(user, updateUserDto);
     return this.userRepository.save(user);

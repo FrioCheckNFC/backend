@@ -38,6 +38,9 @@ export class NfcTag {
   @Column({ name: 'tag_model', length: 20, default: 'NTAG-215' })
   tagModel: string;
 
+  @Column({ name: 'hardware_model', length: 20, default: 'NTAG215' })
+  hardwareModel: string;
+
   // SID (Serial ID): Identificador único de serie de la máquina para vinculación del activo físico
   @Column({ name: 'machine_serial_id', length: 255 })
   machineSerialId: string;

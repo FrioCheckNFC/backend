@@ -92,15 +92,15 @@ export class WorkOrder {
     name: 'expected_location_lat',
     type: 'decimal',
     precision: 10,
-    scale: 7,
+    scale: 8,
   })
   expectedLocationLat: number;
 
   @Column({
     name: 'expected_location_lng',
     type: 'decimal',
-    precision: 10,
-    scale: 7,
+    precision: 11,
+    scale: 8,
   })
   expectedLocationLng: number;
 
@@ -108,7 +108,7 @@ export class WorkOrder {
     name: 'actual_location_lat',
     type: 'decimal',
     precision: 10,
-    scale: 7,
+    scale: 8,
     nullable: true,
   })
   actualLocationLat: number;
@@ -116,8 +116,8 @@ export class WorkOrder {
   @Column({
     name: 'actual_location_lng',
     type: 'decimal',
-    precision: 10,
-    scale: 7,
+    precision: 11,
+    scale: 8,
     nullable: true,
   })
   actualLocationLng: number;

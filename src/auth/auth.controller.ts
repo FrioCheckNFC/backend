@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -13,7 +13,13 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    const user = await this.authService.validateUser(loginDto.email, loginDto.password);
+    const loginIdentifier = loginDto.identifier ?? loginDto.email;
+
+    if (!loginIdentifier) {
+      throw new BadRequestException('Debe enviar identifier (RUT o email)');
+    }
+
+    const user = await this.authService.validateUser(loginIdentifier, loginDto.password);
     return this.authService.login(user);
   }
 

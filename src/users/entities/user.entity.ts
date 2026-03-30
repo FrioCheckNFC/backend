@@ -34,6 +34,9 @@ export class User {
   @Column({ length: 255, unique: true })
   email: string;
 
+  @Column({ length: 12, nullable: true, unique: true })
+  rut?: string;
+
   @Column({ name: 'password_hash', length: 255 })
   password_hash: string;
 
