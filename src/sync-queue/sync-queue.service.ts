@@ -71,7 +71,7 @@ export class SyncQueueService {
     const syncItem = await this.findById(id);
 
     syncItem.retryCount += 1;
-    syncItem.lastError = typeof error === 'string' ? error : error.message;
+    syncItem.errorMessage = typeof error === 'string' ? error : error.message;
     syncItem.status = syncItem.retryCount >= 3 ? SyncStatus.REVISION_MANUAL : SyncStatus.FALLIDO;
 
     return this.syncQueueRepository.save(syncItem);
