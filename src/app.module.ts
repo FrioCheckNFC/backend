@@ -5,6 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
+import { UsersModule } from './modules/users/users.module';
+import { AssetsModule } from './modules/assets/assets.module';
+import { VisitsModule } from './modules/visits/visits.module';
+import { TicketsModule } from './modules/tickets/tickets.module';
+import { MediaModule } from './modules/media/media.module';
 
 @Module({
   imports: [
@@ -35,6 +40,11 @@ import { TenantsModule } from './modules/tenants/tenants.module';
 
     AuthModule,
     TenantsModule,
+    UsersModule,
+    AssetsModule,
+    VisitsModule,
+    TicketsModule,
+    MediaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
