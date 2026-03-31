@@ -2,7 +2,11 @@
 // Logica de negocio para CRUD de tenants (empresas).
 // El controller llama a estos metodos, y estos hablan con la BD via TypeORM.
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Tenant } from './entities/tenant.entity';
@@ -35,7 +39,9 @@ export class TenantsService {
   // Crear un tenant nuevo
   async create(dto: CreateTenantDto): Promise<Tenant> {
     // Verificar que el slug no exista
-    const exists = await this.tenantsRepo.findOne({ where: { slug: dto.slug } });
+    const exists = await this.tenantsRepo.findOne({
+      where: { slug: dto.slug },
+    });
     if (exists) {
       throw new BadRequestException('Ya existe un tenant con ese slug');
     }
@@ -50,7 +56,9 @@ export class TenantsService {
 
     // Si cambian el slug, verificar que no este en uso
     if (dto.slug && dto.slug !== tenant.slug) {
-      const slugTaken = await this.tenantsRepo.findOne({ where: { slug: dto.slug } });
+      const slugTaken = await this.tenantsRepo.findOne({
+        where: { slug: dto.slug },
+      });
       if (slugTaken) {
         throw new BadRequestException('Ese slug ya esta en uso');
       }

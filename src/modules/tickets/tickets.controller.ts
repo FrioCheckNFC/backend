@@ -3,8 +3,23 @@
 // ADMIN: CRUD completo + asignar tecnicos.
 // TECHNICIAN: crear tickets y ver los asignados.
 
-import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { TicketsService } from './tickets.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
@@ -56,8 +71,8 @@ export class TicketsController {
     return this.ticketsService.create(dto, req.user.id, req.user.tenantId);
   }
 
-  // PUT /api/v1/tickets/:id — Actualizar un ticket (admin asigna, tecnico cambia estado)
-  @Put(':id')
+  // PATCH /api/v1/tickets/:id — Actualizar un ticket (admin asigna, tecnico cambia estado)
+  @Patch(':id')
   @Roles('ADMIN', 'TECHNICIAN')
   @ApiOperation({ summary: 'Actualizar un ticket' })
   @ApiResponse({ status: 200, description: 'Ticket actualizado' })

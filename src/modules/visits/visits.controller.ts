@@ -3,8 +3,23 @@
 // ADMIN: ve todas las visitas de su tenant.
 // TECHNICIAN: crea visitas y ve solo las suyas.
 
-import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { VisitsService } from './visits.service';
 import { CreateVisitDto } from './dto/create-visit.dto';
 import { UpdateVisitDto } from './dto/update-visit.dto';
@@ -23,7 +38,10 @@ export class VisitsController {
   @Get()
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Listar todas las visitas de mi empresa' })
-  @ApiResponse({ status: 200, description: 'Lista de visitas con tecnico y equipo' })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de visitas con tecnico y equipo',
+  })
   findAll(@Req() req) {
     return this.visitsService.findAll(req.user.tenantId);
   }
@@ -56,13 +74,22 @@ export class VisitsController {
     return this.visitsService.create(dto, req.user.id, req.user.tenantId);
   }
 
-  // PUT /api/v1/visits/:id — Corregir una visita
-  @Put(':id')
+  // PATCH /api/v1/visits/:id — Corregir una visita
+  // FIX #6: se pasa el id y roles del requester para verificar ownership en el service
+  @Patch(':id')
   @Roles('ADMIN', 'TECHNICIAN')
-  @ApiOperation({ summary: 'Corregir datos de una visita' })
+  @ApiOperation({
+    summary: 'Corregir datos de una visita (tecnico solo las suyas)',
+  })
   @ApiResponse({ status: 200, description: 'Visita actualizada' })
   update(@Param('id') id: string, @Body() dto: UpdateVisitDto, @Req() req) {
-    return this.visitsService.update(id, dto, req.user.tenantId);
+    return this.visitsService.update(
+      id,
+      dto,
+      req.user.tenantId,
+      req.user.id,
+      req.user.roles,
+    );
   }
 
   // DELETE /api/v1/visits/:id — Eliminar una visita (soft delete, solo admin)

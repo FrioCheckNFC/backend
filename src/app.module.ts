@@ -6,10 +6,18 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { UsersModule } from './modules/users/users.module';
-import { AssetsModule } from './modules/assets/assets.module';
+import { MachinesModule } from './modules/machines/machines.module';
 import { VisitsModule } from './modules/visits/visits.module';
 import { TicketsModule } from './modules/tickets/tickets.module';
-import { MediaModule } from './modules/media/media.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { SectorsModule } from './modules/sectors/sectors.module';
+import { SalesModule } from './modules/sales/sales.module';
+import { MermasModule } from './modules/mermas/mermas.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { KpisModule } from './modules/kpis/kpis.module';
+import { NfcTagsModule } from './modules/nfc-tags/nfc-tags.module';
+import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
+import { SyncQueueModule } from './modules/sync-queue/sync-queue.module';
 
 @Module({
   imports: [
@@ -41,10 +49,18 @@ import { MediaModule } from './modules/media/media.module';
     AuthModule,
     TenantsModule,
     UsersModule,
-    AssetsModule,
+    MachinesModule,
     VisitsModule,
     TicketsModule,
-    MediaModule,
+    AttachmentsModule,
+    SectorsModule,
+    SalesModule,
+    MermasModule,
+    InventoryModule,
+    KpisModule,
+    NfcTagsModule,
+    WorkOrdersModule,
+    SyncQueueModule,
   ],
   controllers: [AppController],
   providers: [AppService],

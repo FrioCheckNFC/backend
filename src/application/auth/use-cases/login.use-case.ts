@@ -4,6 +4,7 @@ import { TokenSignerPort } from '../ports/token-signer.port';
 
 export class InvalidCredentialsError extends Error {}
 export class InactiveUserError extends Error {}
+export class TenantNotFoundError extends Error {}
 
 export interface LoginOutput {
   access_token: string;
@@ -17,26 +18,45 @@ export interface LoginOutput {
   };
 }
 
+import { TenantsService } from '../../../modules/tenants/tenants.service';
+import { NotFoundException } from '@nestjs/common';
+
 export class LoginUseCase {
   constructor(
     private readonly userReader: AuthUserReaderPort,
     private readonly passwordHasher: PasswordHasherPort,
     private readonly tokenSigner: TokenSignerPort,
+    private readonly tenantsService: TenantsService,
   ) {}
 
   async execute(email: string, password: string): Promise<LoginOutput> {
     const user = await this.userReader.findByEmail(email);
     if (!user) {
-      throw new InvalidCredentialsError('Email no encontrado');
+      throw new InvalidCredentialsError('Email o contrasena incorrectos');
     }
 
     if (!user.active) {
       throw new InactiveUserError('Usuario desactivado');
     }
 
-    const passwordValid = await this.passwordHasher.compare(password, user.passwordHash);
+    try {
+      const tenant = await this.tenantsService.findOne(user.tenantId);
+      if (!tenant.isActive) {
+        throw new InactiveUserError('El tenant está deshabilitado');
+      }
+    } catch (err) {
+      if (err instanceof NotFoundException) {
+        throw new TenantNotFoundError('Error de configuracion del usuario');
+      }
+      throw err;
+    }
+
+    const passwordValid = await this.passwordHasher.compare(
+      password,
+      user.passwordHash,
+    );
     if (!passwordValid) {
-      throw new InvalidCredentialsError('Contrasena incorrecta');
+      throw new InvalidCredentialsError('Email o contrasena incorrectos');
     }
 
     const accessToken = this.tokenSigner.sign({

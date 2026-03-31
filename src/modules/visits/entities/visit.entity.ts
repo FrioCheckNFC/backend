@@ -15,7 +15,7 @@ import {
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
-import { Asset } from '../../assets/entities/asset.entity';
+import { Machine } from '../../machines/entities/machine.entity';
 
 @Entity('visits')
 export class Visit {
@@ -39,18 +39,18 @@ export class Visit {
   technician: User;
 
   // Equipo que fue visitado
-  @Column({ name: 'asset_id', type: 'uuid' })
-  assetId: string;
+  @Column({ name: 'machine_id', type: 'uuid' })
+  machineId: string;
 
-  @ManyToOne(() => Asset)
-  @JoinColumn({ name: 'asset_id' })
-  asset: Asset;
+  @ManyToOne(() => Machine)
+  @JoinColumn({ name: 'machine_id' })
+  machine: Machine;
 
-  // Coordenadas GPS del tecnico al momento de la visita
-  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  // FIX #11: 'float' en vez de 'decimal' para que TypeORM devuelva number (no string)
+  @Column({ type: 'float', nullable: true })
   latitude?: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 7, nullable: true })
+  @Column({ type: 'float', nullable: true })
   longitude?: number;
 
   // Tag NFC que escaneo (para comprobar que estuvo fisicamente ahi)

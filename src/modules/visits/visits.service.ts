@@ -28,7 +28,10 @@ export class VisitsService {
   }
 
   // Listar solo las visitas de un tecnico especifico
-  async findByTechnician(technicianId: string, tenantId: string): Promise<Visit[]> {
+  async findByTechnician(
+    technicianId: string,
+    tenantId: string,
+  ): Promise<Visit[]> {
     return this.visitsRepo.find({
       where: { technicianId, tenantId },
       relations: ['asset'],
@@ -49,7 +52,11 @@ export class VisitsService {
   }
 
   // Crear una visita (la app movil manda los datos cuando el tecnico termina)
-  async create(dto: CreateVisitDto, technicianId: string, tenantId: string): Promise<Visit> {
+  async create(
+    dto: CreateVisitDto,
+    technicianId: string,
+    tenantId: string,
+  ): Promise<Visit> {
     const visit = this.visitsRepo.create({
       ...dto,
       visitedAt: new Date(dto.visitedAt),
@@ -59,9 +66,26 @@ export class VisitsService {
     return this.visitsRepo.save(visit);
   }
 
-  // Actualizar una visita (solo correcciones)
-  async update(id: string, dto: UpdateVisitDto, tenantId: string): Promise<Visit> {
+  // Actualizar una visita
+  // FIX #6: si el usuario es TECHNICIAN, solo puede editar SUS propias visitas
+  async update(
+    id: string,
+    dto: UpdateVisitDto,
+    tenantId: string,
+    requesterId: string,
+    requesterRoles: string[],
+  ): Promise<Visit> {
     const visit = await this.findOne(id, tenantId);
+
+    // Admin puede editar cualquier visita del tenant
+    // Tecnico solo puede editar las suyas
+    if (
+      !requesterRoles.includes('ADMIN') &&
+      visit.technicianId !== requesterId
+    ) {
+      throw new Error('No tienes permiso para editar esta visita');
+    }
+
     Object.assign(visit, dto);
     return this.visitsRepo.save(visit);
   }

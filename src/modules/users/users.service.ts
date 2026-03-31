@@ -3,7 +3,11 @@
 // Filtra por tenantId para respetar el aislamiento multi-tenant:
 // un ADMIN solo ve los usuarios de su propia empresa.
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
@@ -18,21 +22,38 @@ export class UsersService {
     private usersRepo: Repository<User>,
   ) {}
 
-  // Listar usuarios del mismo tenant que el admin logueado
   async findAll(tenantId: string): Promise<User[]> {
     return this.usersRepo.find({
       where: { tenantId },
       order: { createdAt: 'DESC' },
-      // No devolver el hash de la contrasena
-      select: ['id', 'email', 'firstName', 'lastName', 'phone', 'role', 'active', 'tenantId', 'createdAt'],
+      select: [
+        'id',
+        'email',
+        'firstName',
+        'lastName',
+        'phone',
+        'role',
+        'active',
+        'tenantId',
+        'createdAt',
+      ],
     });
   }
 
-  // Obtener un usuario por ID (verificando que sea del mismo tenant)
   async findOne(id: string, tenantId: string): Promise<User> {
     const user = await this.usersRepo.findOne({
       where: { id, tenantId },
-      select: ['id', 'email', 'firstName', 'lastName', 'phone', 'role', 'active', 'tenantId', 'createdAt'],
+      select: [
+        'id',
+        'email',
+        'firstName',
+        'lastName',
+        'phone',
+        'role',
+        'active',
+        'tenantId',
+        'createdAt',
+      ],
     });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
@@ -40,15 +61,14 @@ export class UsersService {
     return user;
   }
 
-  // Crear un usuario nuevo dentro del tenant del admin
   async create(dto: CreateUserDto, tenantId: string): Promise<User> {
-    // Verificar que no exista el email
-    const exists = await this.usersRepo.findOne({ where: { email: dto.email } });
+    const exists = await this.usersRepo.findOne({
+      where: { email: dto.email },
+    });
     if (exists) {
       throw new BadRequestException('Ya existe un usuario con ese email');
     }
 
-    // Hashear la contrasena
     const hash = await bcrypt.hash(dto.password, 10);
 
     const user = this.usersRepo.create({
@@ -57,29 +77,28 @@ export class UsersService {
       firstName: dto.firstName,
       lastName: dto.lastName,
       phone: dto.phone,
-      role: dto.role,
-      tenantId, // Siempre el tenant del admin logueado
+      role: dto.role ?? 'TECHNICIAN',
+      tenantId,
     });
 
     const saved = await this.usersRepo.save(user);
-
-    // Devolver sin el hash
     return this.findOne(saved.id, tenantId);
   }
 
-  // Actualizar un usuario (solo de su tenant)
-  async update(id: string, dto: UpdateUserDto, tenantId: string): Promise<User> {
+  async update(
+    id: string,
+    dto: UpdateUserDto,
+    tenantId: string,
+  ): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id, tenantId } });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    // Si cambian la contrasena, hashearla
     if (dto.password) {
       user.passwordHash = await bcrypt.hash(dto.password, 10);
     }
 
-    // Actualizar los demas campos
     if (dto.email) user.email = dto.email;
     if (dto.firstName) user.firstName = dto.firstName;
     if (dto.lastName) user.lastName = dto.lastName;
@@ -91,12 +110,17 @@ export class UsersService {
     return this.findOne(id, tenantId);
   }
 
-  // Soft delete (solo de su tenant)
   async remove(id: string, tenantId: string): Promise<void> {
     const user = await this.usersRepo.findOne({ where: { id, tenantId } });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
     await this.usersRepo.softRemove(user);
+  }
+
+  async findByEmail(emailOrRut: string): Promise<User | null> {
+    return this.usersRepo.findOne({
+      where: [{ email: emailOrRut }, { rut: emailOrRut }],
+    });
   }
 }

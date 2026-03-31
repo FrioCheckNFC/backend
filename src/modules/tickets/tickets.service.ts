@@ -27,7 +27,10 @@ export class TicketsService {
   }
 
   // Listar tickets asignados a un tecnico
-  async findByAssignee(assignedToId: string, tenantId: string): Promise<Ticket[]> {
+  async findByAssignee(
+    assignedToId: string,
+    tenantId: string,
+  ): Promise<Ticket[]> {
     return this.ticketsRepo.find({
       where: { assignedToId, tenantId },
       relations: ['asset', 'createdBy'],
@@ -48,7 +51,11 @@ export class TicketsService {
   }
 
   // Crear un ticket
-  async create(dto: CreateTicketDto, createdById: string, tenantId: string): Promise<Ticket> {
+  async create(
+    dto: CreateTicketDto,
+    createdById: string,
+    tenantId: string,
+  ): Promise<Ticket> {
     const ticket = this.ticketsRepo.create({
       ...dto,
       createdById,
@@ -58,7 +65,11 @@ export class TicketsService {
   }
 
   // Actualizar un ticket
-  async update(id: string, dto: UpdateTicketDto, tenantId: string): Promise<Ticket> {
+  async update(
+    id: string,
+    dto: UpdateTicketDto,
+    tenantId: string,
+  ): Promise<Ticket> {
     const ticket = await this.findOne(id, tenantId);
     Object.assign(ticket, dto);
     return this.ticketsRepo.save(ticket);

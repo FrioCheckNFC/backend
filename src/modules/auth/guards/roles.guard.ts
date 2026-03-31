@@ -12,7 +12,10 @@ export class RolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     // Leer los roles permitidos del decorador @Roles()
-    const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
+    const requiredRoles = this.reflector.get<string[]>(
+      'roles',
+      context.getHandler(),
+    );
 
     // Si el endpoint no tiene @Roles(), dejar pasar a todos los autenticados
     if (!requiredRoles) {
@@ -23,7 +26,8 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    // Revisar si el rol del usuario esta en la lista de permitidos
-    return requiredRoles.includes(user.role);
+    // Revisar si alguno de los roles del usuario esta en la lista de permitidos
+    const userRoles = user.roles || [];
+    return requiredRoles.some((role) => userRoles.includes(role));
   }
 }

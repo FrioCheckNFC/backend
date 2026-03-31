@@ -4,8 +4,23 @@
 // El tenantId se saca del token del admin logueado (no del body ni de la URL).
 // Asi un admin solo puede ver/crear/editar usuarios de SU empresa.
 
-import { Controller, Get, Post, Put, Delete, Body, Param, Req, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -20,7 +35,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 export class UsersController {
   constructor(private usersService: UsersService) {}
 
-  // GET /api/v1/users — Listar usuarios de mi tenant
   @Get()
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Listar usuarios de mi empresa' })
@@ -29,7 +43,6 @@ export class UsersController {
     return this.usersService.findAll(req.user.tenantId);
   }
 
-  // GET /api/v1/users/:id — Obtener un usuario de mi tenant
   @Get(':id')
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Obtener un usuario por ID' })
@@ -39,7 +52,6 @@ export class UsersController {
     return this.usersService.findOne(id, req.user.tenantId);
   }
 
-  // POST /api/v1/users — Crear un usuario en mi tenant
   @Post()
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Crear un usuario nuevo en mi empresa' })
@@ -48,8 +60,7 @@ export class UsersController {
     return this.usersService.create(dto, req.user.tenantId);
   }
 
-  // PUT /api/v1/users/:id — Actualizar un usuario de mi tenant
-  @Put(':id')
+  @Patch(':id')
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Actualizar un usuario' })
   @ApiResponse({ status: 200, description: 'Usuario actualizado' })
@@ -57,7 +68,6 @@ export class UsersController {
     return this.usersService.update(id, dto, req.user.tenantId);
   }
 
-  // DELETE /api/v1/users/:id — Eliminar un usuario de mi tenant (soft delete)
   @Delete(':id')
   @Roles('ADMIN')
   @ApiOperation({ summary: 'Eliminar un usuario (soft delete)' })

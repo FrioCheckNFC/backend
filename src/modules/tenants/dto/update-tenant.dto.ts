@@ -6,12 +6,20 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsBoolean } from 'class-validator';
 
 export class UpdateTenantDto {
-  @ApiProperty({ example: 'SuperFrio Updated', description: 'Nuevo nombre', required: false })
+  @ApiProperty({
+    example: 'SuperFrio Updated',
+    description: 'Nuevo nombre',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   name?: string;
 
-  @ApiProperty({ example: 'superfrio-updated', description: 'Nuevo slug', required: false })
+  @ApiProperty({
+    example: 'superfrio-updated',
+    description: 'Nuevo slug',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   slug?: string;
@@ -21,12 +29,19 @@ export class UpdateTenantDto {
   @IsString()
   description?: string;
 
-  @ApiProperty({ example: 'https://ejemplo.com/nuevo-logo.png', required: false })
+  @ApiProperty({
+    example: 'https://ejemplo.com/nuevo-logo.png',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   logoUrl?: string;
 
-  @ApiProperty({ example: false, description: 'Desactivar/activar el tenant', required: false })
+  @ApiProperty({
+    example: false,
+    description: 'Desactivar/activar el tenant',
+    required: false,
+  })
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;

@@ -25,6 +25,10 @@ export class User {
   @Column({ unique: true })
   email: string;
 
+  // RUT chileno con guion y dígito verificador (opcional, pero único si existe)
+  @Column({ unique: true, nullable: true })
+  rut: string;
+
   // Hash bcrypt de la contrasena. Nunca se guarda en texto plano.
   @Column({ name: 'password_hash' })
   passwordHash: string;
@@ -42,7 +46,13 @@ export class User {
   phone: string;
 
   // Rol del usuario: ADMIN, SUPPORT, VENDOR, RETAILER, TECHNICIAN, DRIVER
-  @Column()
+  // Esta columna mapea exactamente al ENUM "users_role_enum" de tu Azure DB
+  @Column({ 
+    name: 'role', 
+    type: 'enum', 
+    enum: ['ADMIN', 'SUPPORT', 'VENDOR', 'RETAILER', 'TECHNICIAN', 'DRIVER'], 
+    default: 'TECHNICIAN' 
+  })
   role: string;
 
   // Tokens FCM para notificaciones push (opcional)

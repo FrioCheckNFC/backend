@@ -15,7 +15,7 @@ import {
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
 import { User } from '../../users/entities/user.entity';
-import { Asset } from '../../assets/entities/asset.entity';
+import { Machine } from '../../machines/entities/machine.entity';
 
 @Entity('tickets')
 export class Ticket {
@@ -31,12 +31,12 @@ export class Ticket {
   tenant: Tenant;
 
   // Equipo asociado al problema (opcional, puede ser un ticket general)
-  @Column({ name: 'asset_id', type: 'uuid', nullable: true })
-  assetId?: string;
+  @Column({ name: 'machine_id', type: 'uuid', nullable: true })
+  machineId?: string;
 
-  @ManyToOne(() => Asset)
-  @JoinColumn({ name: 'asset_id' })
-  asset?: Asset;
+  @ManyToOne(() => Machine)
+  @JoinColumn({ name: 'machine_id' })
+  machine?: Machine;
 
   // Quien creo el ticket (tecnico o admin)
   @Column({ name: 'created_by_id', type: 'uuid' })
