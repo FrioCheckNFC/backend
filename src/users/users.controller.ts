@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
+import { CreateUserDto, UpdateUserDto, AddRoleDto, SetRolesDto } from './dto/user.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { TenantGuard } from '../auth/guards/tenant.guard';
@@ -62,5 +62,35 @@ export class UsersController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
+  }
+
+  // ==========================================
+  // ENDPOINTS DE ROLES
+  // ==========================================
+
+  @Get(':id/roles')
+  @RequireRoles('ADMIN')
+  getUserRoles(@Param('id') id: string) {
+    return this.usersService.getUserRoles(id);
+  }
+
+  @Post(':id/roles')
+  @RequireRoles('ADMIN')
+  @HttpCode(HttpStatus.CREATED)
+  addRole(@Param('id') id: string, @Body() addRoleDto: AddRoleDto) {
+    return this.usersService.addRole(id, addRoleDto.role);
+  }
+
+  @Delete(':id/roles/:role')
+  @RequireRoles('ADMIN')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeRole(@Param('id') id: string, @Param('role') role: string) {
+    return this.usersService.removeRole(id, role);
+  }
+
+  @Patch(':id/roles')
+  @RequireRoles('ADMIN')
+  setRoles(@Param('id') id: string, @Body() setRolesDto: SetRolesDto) {
+    return this.usersService.setRoles(id, setRolesDto.roles);
   }
 }

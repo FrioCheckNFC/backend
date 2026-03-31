@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
+import { UserRoleEntity } from '../users/entities/user-role.entity';
 
 @Injectable()
 export class AuthService {
@@ -58,10 +59,14 @@ export class AuthService {
   }
 
   async login(user: any) {
+    // Obtener roles del usuario (de la tabla user_roles o fallback al campo role)
+    const roles = user.roles || (user.role ? [user.role] : []);
+    
     const payload = {
       email: user.email,
       sub: user.id,
-      role: user.role,
+      role: user.role, // Mantener para compatibilidad
+      roles: roles,    // Nuevo: array de roles
       tenantId: user.tenant_id,
     };
 
@@ -74,7 +79,8 @@ export class AuthService {
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
-        role: user.role,
+        role: user.role,    // Mantener para compatibilidad
+        roles: roles,       // Nuevo: array de roles
         tenantId: user.tenant_id,
       },
     };

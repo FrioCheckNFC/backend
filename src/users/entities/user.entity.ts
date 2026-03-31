@@ -6,9 +6,11 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { UserRoleEntity } from './user-role.entity';
 
 export enum UserRole {
   ADMIN = 'ADMIN',
@@ -53,8 +55,21 @@ export class User {
     type: 'enum',
     enum: UserRole,
     enumName: 'users_role_enum',
+    nullable: true,
   })
   role: UserRole;
+
+  @OneToMany(() => UserRoleEntity, (userRole) => userRole.user, { eager: true })
+  userRoles: UserRoleEntity[];
+
+  // Helper para obtener array de roles
+  get roles(): string[] {
+    if (this.userRoles && this.userRoles.length > 0) {
+      return this.userRoles.map((ur) => ur.role);
+    }
+    // Fallback al rol legacy si no hay userRoles
+    return this.role ? [this.role] : [];
+  }
 
   @Column({ name: 'fcm_tokens', type: 'text', nullable: true })
   fcm_tokens?: string;

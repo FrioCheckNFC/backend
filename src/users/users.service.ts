@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
+import { UserRoleEntity } from './entities/user-role.entity';
 import { CreateUserDto, UpdateUserDto } from './dto/user.dto';
 import * as bcrypt from 'bcrypt';
 
@@ -13,6 +14,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(UserRoleEntity)
+    private readonly userRoleRepository: Repository<UserRoleEntity>,
   ) {}
 
   private validateRawCredentialInput(email: string, password: string): void {
@@ -114,5 +117,93 @@ export class UsersService {
 
   async validatePassword(user: User, password: string): Promise<boolean> {
     return bcrypt.compare(password, user.password_hash);
+  }
+
+  // ==========================================
+  // GESTIÓN DE ROLES
+  // ==========================================
+
+  async getUserRoles(userId: string): Promise<string[]> {
+    const user = await this.findById(userId);
+    return user.roles;
+  }
+
+  async addRole(userId: string, role: string): Promise<UserRoleEntity> {
+    // Validar que el rol sea válido
+    if (!Object.values(UserRole).includes(role as UserRole)) {
+      throw new BadRequestException(`Rol inválido: ${role}. Roles válidos: ${Object.values(UserRole).join(', ')}`);
+    }
+
+    // Verificar que el usuario existe
+    const user = await this.findById(userId);
+
+    // Verificar si ya tiene ese rol
+    const existingRole = await this.userRoleRepository.findOne({
+      where: { user_id: userId, role },
+    });
+
+    if (existingRole) {
+      throw new BadRequestException(`El usuario ya tiene el rol ${role}`);
+    }
+
+    // Crear el nuevo rol
+    const userRole = new UserRoleEntity();
+    userRole.user_id = userId;
+    userRole.role = role;
+
+    return this.userRoleRepository.save(userRole);
+  }
+
+  async removeRole(userId: string, role: string): Promise<void> {
+    // Verificar que el usuario existe
+    await this.findById(userId);
+
+    const userRole = await this.userRoleRepository.findOne({
+      where: { user_id: userId, role },
+    });
+
+    if (!userRole) {
+      throw new NotFoundException(`El usuario no tiene el rol ${role}`);
+    }
+
+    // Verificar que no sea el último rol
+    const rolesCount = await this.userRoleRepository.count({
+      where: { user_id: userId },
+    });
+
+    if (rolesCount <= 1) {
+      throw new BadRequestException('No se puede eliminar el último rol del usuario');
+    }
+
+    await this.userRoleRepository.remove(userRole);
+  }
+
+  async setRoles(userId: string, roles: string[]): Promise<UserRoleEntity[]> {
+    // Validar roles
+    for (const role of roles) {
+      if (!Object.values(UserRole).includes(role as UserRole)) {
+        throw new BadRequestException(`Rol inválido: ${role}`);
+      }
+    }
+
+    if (roles.length === 0) {
+      throw new BadRequestException('Debe asignar al menos un rol');
+    }
+
+    // Verificar que el usuario existe
+    await this.findById(userId);
+
+    // Eliminar roles existentes
+    await this.userRoleRepository.delete({ user_id: userId });
+
+    // Crear nuevos roles
+    const userRoles = roles.map((role) => {
+      const userRole = new UserRoleEntity();
+      userRole.user_id = userId;
+      userRole.role = role;
+      return userRole;
+    });
+
+    return this.userRoleRepository.save(userRoles);
   }
 }

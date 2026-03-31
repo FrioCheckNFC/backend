@@ -4,6 +4,8 @@ import {
   IsOptional,
   IsUUID,
   IsEnum,
+  IsArray,
+  ArrayMinSize,
 } from 'class-validator';
 import { UserRole } from '../entities/user.entity';
 
@@ -90,4 +92,17 @@ export class UserResponseDto {
   createdAt: Date;
   updatedAt?: Date;
   deletedAt?: Date;
+}
+
+// DTOs para gestión de roles
+export class AddRoleDto {
+  @IsString()
+  role: string;
+}
+
+export class SetRolesDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  roles: string[];
 }
