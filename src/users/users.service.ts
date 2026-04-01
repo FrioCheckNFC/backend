@@ -71,7 +71,8 @@ export class UsersService {
   }
 
   async findAll(tenantId?: string): Promise<User[]> {
-    const query = this.userRepository.createQueryBuilder('user');
+    const query = this.userRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.tenant', 'tenant');
     if (tenantId) {
       query.where('user.tenant_id = :tenantId', { tenantId });
     }
