@@ -37,11 +37,9 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
           DB_SSL: "true"
         run: |
-          echo "DB_HOST is set: ${{ secrets.DB_HOST != '' }}"
-          echo "DB_PORT is set: ${{ secrets.DB_PORT != '' }}"
-          echo "DB_USERNAME is set: ${{ secrets.DB_USERNAME != '' }}"
-          echo "DB_PASSWORD is set: ${{ secrets.DB_PASSWORD != '' }}"
-          echo "DB_NAME is set: ${{ secrets.DB_NAME != '' }}"
+          # Sync old migrations first (mark them as executed without running)
+          npx ts-node -r tsconfig-paths/register scripts/sync-migrations.ts
+          # Then run any new migrations
           npm run migration:run
 
       - name: Create deployment package
