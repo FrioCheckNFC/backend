@@ -1,13 +1,17 @@
 // AuthController: recibe las peticiones HTTP y las delega al AuthService.
 // No contiene logica de negocio, solo enruta.
 
-import { Body, Controller, Post, Get, Param } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Body, Controller, Post, Get, Param, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RolesGuard } from './guards/roles.guard';
+import { TenantGuard } from './guards/tenant.guard';
+import { RequireRoles } from './decorators/require-roles.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -15,7 +19,8 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('login')
-  @ApiOperation({ summary: 'Iniciar sesion con email y contrasena' })
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Iniciar sesion con email/RUT y contrasena' })
   @ApiResponse({ status: 200, description: 'Login exitoso, devuelve JWT' })
   @ApiResponse({ status: 401, description: 'Credenciales invalidas' })
   login(@Body() dto: LoginDto) {
@@ -23,7 +28,11 @@ export class AuthController {
   }
 
   @Post('register')
-  @ApiOperation({ summary: 'Registrar un usuario nuevo' })
+  @UseGuards(JwtAuthGuard, RolesGuard, TenantGuard)
+  @RequireRoles('ADMIN')
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Registrar un usuario nuevo (requiere rol ADMIN)' })
   @ApiResponse({ status: 201, description: 'Usuario creado exitosamente' })
   register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
@@ -57,5 +66,16 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Usuario no encontrado' })
   checkUser(@Param('identifier') identifier: string) {
     return this.authService.checkUser(identifier);
+  }
+
+  @Post('validate-token')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Validar si un JWT sigue vigente' })
+  @ApiResponse({ status: 200, description: 'Token válido' })
+  @ApiResponse({ status: 401, description: 'Token inválido o expirado' })
+  validateToken() {
+    return { valid: true, message: 'Token válido' };
   }
 }
