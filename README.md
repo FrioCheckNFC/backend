@@ -1,228 +1,125 @@
 # FrioCheck API
 
-Sistema de control de visitas con NFC para refrigeración comercial.
+Backend NFC para refrigeración comercial.
 
 ## Stack
 
-- **Backend:** NestJS + TypeScript
-- **Base de datos:** PostgreSQL 15
-- **ORM:** TypeORM
-- **Autenticación:** JWT + Guards
-- **Cache:** Redis
-
-## Requisitos
-
-- Node.js 18+
-- Docker Desktop
-- PostgreSQL (vía Docker)
+NestJS + TypeScript | PostgreSQL + TypeORM | JWT Auth
 
 ## Instalación
 
 ```bash
-# 1. Clonar repositorio
-git clone <repo-url>
-cd nfcproject
-
-# 2. Instalar dependencias
-npm install
-
-# 3. Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus credenciales
-
-# 4. Iniciar servicios Docker
-docker compose up -d
-
-# 5. Ejecutar seed (crear datos iniciales)
-npx ts-node scripts/seed.ts
-
-# 6. Iniciar servidor
-npm run start:dev
+npm install && cp .env.example .env && npm run start:dev
 ```
 
-El servidor corre en `http://localhost:3001`
-
-## Credenciales (Seed)
-
-| Email | Contraseña | Rol |
-|-------|------------|-----|
-| admin@friocheck.com | Admin123! | ADMIN |
-| tecnico@friocheck.com | Tecnico123! | TECHNICIAN |
-| conductor@friocheck.com | Conductor123! | DRIVER |
-| vendedor@friocheck.com | Vendedor123! | VENDOR |
-| soporte@friocheck.com | Soporte123! | SUPPORT |
-
-## Estructura del Proyecto
+## Producción
 
 ```
-nfcproject/
-├── src/
-│   ├── auth/              # Autenticación JWT
-│   ├── users/             # Usuarios (6 roles)
-│   ├── tenants/           # Multi-tenant
-│   ├── machines/          # Equipos refrigerados
-│   ├── nfc-tags/          # Etiquetas NFC
-│   ├── visits/            # Check-in / Check-out
-│   ├── work-orders/       # Órdenes de trabajo
-│   ├── tickets/           # Tickets de soporte
-│   ├── attachments/       # Archivos adjuntos
-│   ├── sync-queue/        # Cola de sincronización offline
-│   └── migrations/        # Migraciones TypeORM
-├── scripts/
-│   ├── seed.ts            # Crear datos iniciales
-│   └── cleanup.ts         # Limpiar base de datos
-├── docker-compose.yml     # Servicios Docker
-├── docs/
-│   └── SCHEMA_BD_FRIOCHECK.txt # Documentación del esquema
-├── .env.example           # Variables de entorno
-└── test_all_endpoints.ps1 # Script de pruebas
+https://friocheck-api-b9eqhbd5ddevfbat.canadacentral-01.azurewebsites.net/api/v1
 ```
 
-## Módulos y Endpoints
+## Roles
 
-### Auth (3 endpoints)
-```
-POST /auth/login
-POST /auth/register         [ADMIN]
-POST /auth/validate-token
-```
+| Rol | Permisos |
+|-----|----------|
+| SUPER_ADMIN | Tenants, admins globales |
+| ADMIN | Todo en su tenant |
+| SUPPORT | Gestiona usuarios operativos |
+| VENDOR/TECHNICIAN/RETAILER/DRIVER | Operaciones de campo |
 
-### Users (6 endpoints)
-```
-POST /users                 [ADMIN]
-GET /users                  [ADMIN]
-GET /users/email/:email     [ADMIN]
-GET /users/:id              [ADMIN]
-PATCH /users/:id            [ADMIN]
-DELETE /users/:id           [ADMIN]
-```
+> Un usuario puede tener múltiples roles.
 
-### Tenants (6 endpoints)
-```
-POST /tenants               [ADMIN]
-GET /tenants                [ADMIN]
-GET /tenants/slug/:slug     [ADMIN]
-GET /tenants/:id            [ADMIN]
-PATCH /tenants/:id          [ADMIN]
-DELETE /tenants/:id         [ADMIN]
-```
+## Endpoints
 
-### Machines (8 endpoints)
-```
-POST /machines              [ADMIN]
-POST /machines/scan         [ADMIN]
-GET /machines               [ADMIN]
-GET /machines/serial/:serial [ADMIN]
-GET /machines/:id           [ADMIN]
-GET /machines/:id/nfc-tag   [ADMIN]
-PATCH /machines/:id         [ADMIN]
-DELETE /machines/:id        [ADMIN]
-```
+### Auth
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/auth/login` | Login (identifier + password) |
+| POST | `/auth/validate-token` | Validar JWT |
 
-### NFC Tags (7 endpoints)
-```
-POST /nfc-tags              [ADMIN, TECHNICIAN]
-GET /nfc-tags               [ADMIN, TECHNICIAN, VENDOR, DRIVER, RETAILER]
-GET /nfc-tags/machine/:id   [ADMIN, TECHNICIAN, VENDOR, DRIVER, RETAILER]
-GET /nfc-tags/:uid          [ADMIN, TECHNICIAN, VENDOR, DRIVER, RETAILER]
-POST /nfc-tags/:uid/validate-integrity [ADMIN, TECHNICIAN, VENDOR, DRIVER, RETAILER]
-POST /nfc-tags/:uid/lock    [ADMIN]
-POST /nfc-tags/:uid/deactivate [ADMIN]
-```
+### Usuarios (SUPER_ADMIN, ADMIN, SUPPORT)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET/POST | `/users` | Listar/Crear |
+| GET/PATCH/DELETE | `/users/:id` | CRUD por ID |
+| PATCH | `/users/:id/activate` | Activar |
+| PATCH | `/users/:id/deactivate` | Desactivar |
+| GET/POST/PATCH | `/users/:id/roles` | Gestionar roles |
+| DELETE | `/users/:id/roles/:role` | Quitar rol |
 
-### Visits (5 endpoints)
-```
-POST /visits/check-in       [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
-POST /visits/:id/check-out  [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
-GET /visits/open            [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
-GET /visits/user/:userId    [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
-GET /visits/:id             [TECHNICIAN, DRIVER, VENDOR, RETAILER, ADMIN]
-```
+### Visitas (Mobile)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/visits/check-in` | Iniciar visita |
+| POST | `/visits/:id/check-out` | Finalizar visita |
+| GET | `/visits/open` | Visitas abiertas |
+| GET | `/visits/user/:userId` | Por usuario |
 
-### Tickets (8 endpoints)
-```
-POST /tickets               [ADMIN, TECHNICIAN, VENDOR, RETAILER]
-GET /tickets                [ADMIN, TECHNICIAN, VENDOR, RETAILER]
-GET /tickets/open           [ADMIN, TECHNICIAN, VENDOR, RETAILER]
-GET /tickets/metrics        [ADMIN]
-GET /tickets/sla            [ADMIN]
-GET /tickets/:id            [ADMIN, TECHNICIAN, VENDOR, RETAILER]
-PATCH /tickets/:id          [ADMIN, TECHNICIAN]
-POST /tickets/:id/resolve   [ADMIN, TECHNICIAN]
-```
+### Máquinas
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/machines/scan` | Escanear NFC |
+| GET | `/machines` | Listar (filtro: ?status=) |
+| GET | `/machines/serial/:serialNumber` | Por serial |
+| POST/PATCH/DELETE | `/machines/:id` | CRUD (ADMIN) |
 
-### Work Orders (7 endpoints)
-```
-POST /work-orders           [ADMIN]
-GET /work-orders            [ADMIN, DRIVER, TECHNICIAN, VENDOR, RETAILER]
-GET /work-orders/:id        [ADMIN, DRIVER, TECHNICIAN, VENDOR, RETAILER]
-POST /work-orders/:id/validate-nfc [ADMIN, DRIVER, TECHNICIAN, RETAILER]
-POST /work-orders/:id/deliver [ADMIN, DRIVER, TECHNICIAN, RETAILER]
-PATCH /work-orders/:id      [ADMIN, DRIVER]
-DELETE /work-orders/:id     [ADMIN]
-```
+### NFC Tags
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/nfc-tags` | Listar |
+| GET | `/nfc-tags/:uid` | Por UID |
+| POST | `/nfc-tags/:uid/validate-integrity` | Validar checksum |
+| POST | `/nfc-tags/:uid/lock` | Bloquear (ADMIN) |
 
-### Attachments (7 endpoints)
-```
-POST /attachments           [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
-GET /attachments/visit/:id  [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
-GET /attachments/work-order/:id [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
-GET /attachments/ticket/:id [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
-GET /attachments/:id        [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
-POST /attachments/validate-type [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
-DELETE /attachments/:id     [ADMIN]
-```
+### Work Orders
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET | `/work-orders` | Listar (filtro: ?status=) |
+| POST | `/work-orders/:id/validate-nfc` | Validar NFC al llegar |
+| POST | `/work-orders/:id/deliver` | Marcar entregado |
 
-### Sync Queue (7 endpoints)
-```
-POST /sync-queue            [ADMIN, TECHNICIAN, DRIVER, VENDOR, RETAILER]
-GET /sync-queue/pending     [ADMIN, TECHNICIAN]
-GET /sync-queue/retry-needed [ADMIN]
-GET /sync-queue/stats       [ADMIN]
-GET /sync-queue/:id         [ADMIN, TECHNICIAN]
-POST /sync-queue/:id/mark-synced [ADMIN, TECHNICIAN]
-POST /sync-queue/:id/mark-failed [ADMIN, TECHNICIAN]
-```
+### Tickets
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| GET/POST | `/tickets` | Listar/Crear |
+| GET | `/tickets/open` | Tickets abiertos |
+| POST | `/tickets/:id/resolve` | Resolver |
 
-## Roles de Usuario
+### Sync Queue (Mobile offline)
+| Método | Endpoint | Descripción |
+|--------|----------|-------------|
+| POST | `/sync-queue` | Encolar operación |
+| GET | `/sync-queue/pending` | Pendientes |
+| POST | `/sync-queue/:id/mark-synced` | Marcar sincronizado |
 
-| Rol | Descripción |
-|-----|-------------|
-| ADMIN | Administrador del tenant, acceso total |
-| TECHNICIAN | Técnico de servicio, hace check-in/out |
-| DRIVER | Conductor, entrega y retira máquinas |
-| VENDOR | Vendedor, reporta tickets |
-| RETAILER | Minorista, cliente final |
-| SUPPORT | Soporte técnico interno |
+### Otros
+| Recurso | Endpoints |
+|---------|-----------|
+| Sales | `/sales` - CRUD + métricas |
+| Inventory | `/inventory` - CRUD + low-stock |
+| Mermas | `/mermas` - CRUD + stats |
+| Sectors | `/sectors` - CRUD |
+| KPIs | `/kpis` - CRUD (ADMIN) |
+| Attachments | `/attachments` - subir archivos |
+| Tenants | `/tenants` - CRUD (SUPER_ADMIN) |
 
-## Autenticación
-
-Todas las peticiones (excepto login) requieren:
+## Headers requeridos
 
 ```
-Headers:
-  Authorization: Bearer <JWT_TOKEN>
-  X-Tenant-Id: <TENANT_UUID>
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
 ```
 
-## Desarrollo
+## Response JWT Login
 
-```bash
-# Compilar
-npm run build
-
-# Lint
-npm run lint
-
-# Tests
-npx ts-node scripts/seed.ts
-powershell -ExecutionPolicy Bypass -File test_all_endpoints.ps1
+```json
+{
+  "access_token": "eyJ...",
+  "user": {
+    "id": "uuid",
+    "email": "user@mail.com",
+    "role": ["VENDOR", "TECHNICIAN"],
+    "tenantId": "uuid"
+  }
+}
 ```
-
-## Base de Datos
-
-Ver documentación completa en `docs/SCHEMA_BD_FRIOCHECK.txt`
-
-## Licencia
-
-Privado - FrioCheck

@@ -60,18 +60,17 @@ export class AuthService {
 
   async login(user: any) {
     // Obtener roles del usuario desde userRoles o fallback al campo role
-    let roles: string[] = [];
+    let role: string[] = [];
     if (user.userRoles && user.userRoles.length > 0) {
-      roles = user.userRoles.map((ur: any) => ur.role);
+      role = user.userRoles.map((ur: any) => ur.role);
     } else if (user.role) {
-      roles = [user.role];
+      role = [user.role];
     }
     
     const payload = {
       email: user.email,
       sub: user.id,
-      role: user.role, // Mantener para compatibilidad
-      roles: roles,    // Nuevo: array de roles
+      role: role,
       tenantId: user.tenant_id,
     };
 
@@ -84,8 +83,7 @@ export class AuthService {
         email: user.email,
         firstName: user.first_name,
         lastName: user.last_name,
-        role: user.role,    // Mantener para compatibilidad
-        roles: roles,       // Nuevo: array de roles
+        role: role,
         tenantId: user.tenant_id,
       },
     };
