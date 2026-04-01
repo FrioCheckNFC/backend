@@ -29,10 +29,10 @@ export class LoginUseCase {
     private readonly tenantsService: TenantsService,
   ) {}
 
-  async execute(email: string, password: string): Promise<LoginOutput> {
-    const user = await this.userReader.findByEmail(email);
+  async execute(identifier: string, password: string): Promise<LoginOutput> {
+    const user = await this.userReader.findByEmail(identifier);
     if (!user) {
-      throw new InvalidCredentialsError('Email o contrasena incorrectos');
+      throw new InvalidCredentialsError('Email, RUT o contrasena incorrectos');
     }
 
     if (!user.active) {
@@ -56,7 +56,7 @@ export class LoginUseCase {
       user.passwordHash,
     );
     if (!passwordValid) {
-      throw new InvalidCredentialsError('Email o contrasena incorrectos');
+      throw new InvalidCredentialsError('Email, RUT o contrasena incorrectos');
     }
 
     const accessToken = this.tokenSigner.sign({

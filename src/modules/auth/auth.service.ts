@@ -34,9 +34,9 @@ export class AuthService {
     private readonly resetPasswordUseCase: ResetPasswordUseCase,
   ) {}
 
-  async login(email: string, password: string) {
+  async login(identifier: string, password: string) {
     try {
-      return await this.loginUseCase.execute(email, password);
+      return await this.loginUseCase.execute(identifier, password);
     } catch (err) {
       if (
         err instanceof InvalidCredentialsError ||

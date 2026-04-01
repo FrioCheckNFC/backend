@@ -43,8 +43,8 @@ CREATE TABLE users (
 CREATE INDEX idx_users_tenant_id ON users(tenant_id);
 CREATE INDEX idx_users_email ON users(email);
 
--- 4. ASSETS
-CREATE TABLE assets (
+-- 4. MACHINES (renamed from assets)
+CREATE TABLE machines (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   name VARCHAR(255) NOT NULL,
@@ -61,8 +61,8 @@ CREATE TABLE assets (
   updated_at TIMESTAMP DEFAULT NOW(),
   deleted_at TIMESTAMP
 );
-CREATE INDEX idx_assets_tenant_id ON assets(tenant_id);
-CREATE INDEX idx_assets_nfc_tag_id ON assets(nfc_tag_id);
+CREATE INDEX idx_machines_tenant_id ON machines(tenant_id);
+CREATE INDEX idx_machines_nfc_tag_id ON machines(nfc_tag_id);
 
 -- 5. SECTORS
 CREATE TABLE sectors (
@@ -77,12 +77,12 @@ CREATE TABLE sectors (
 );
 CREATE INDEX idx_sectors_tenant_id ON sectors(tenant_id);
 
--- 6. VISITS
+-- 6. VISITS (machine_id references machines)
 CREATE TABLE visits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   technician_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  asset_id UUID NOT NULL REFERENCES assets(id) ON DELETE CASCADE,
+  machine_id UUID NOT NULL REFERENCES machines(id) ON DELETE CASCADE,
   latitude FLOAT,
   longitude FLOAT,
   nfc_tag_id VARCHAR(255),
@@ -97,11 +97,11 @@ CREATE TABLE visits (
 CREATE INDEX idx_visits_tenant_id ON visits(tenant_id);
 CREATE INDEX idx_visits_technician_id ON visits(technician_id);
 
--- 7. TICKETS
+-- 7. TICKETS (machine_id references machines)
 CREATE TABLE tickets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
-  asset_id UUID REFERENCES assets(id) ON DELETE SET NULL,
+  machine_id UUID REFERENCES machines(id) ON DELETE SET NULL,
   created_by_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   assigned_to_id UUID REFERENCES users(id) ON DELETE SET NULL,
   title VARCHAR(255) NOT NULL,
@@ -114,13 +114,13 @@ CREATE TABLE tickets (
 );
 CREATE INDEX idx_tickets_tenant_id ON tickets(tenant_id);
 
--- 8. SALES
+-- 8. SALES (machine_id references machines)
 CREATE TABLE sales (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   vendor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   sector_id UUID NOT NULL REFERENCES sectors(id) ON DELETE CASCADE,
-  machine_id UUID REFERENCES assets(id) ON DELETE SET NULL,
+  machine_id UUID REFERENCES machines(id) ON DELETE SET NULL,
   amount NUMERIC NOT NULL,
   description VARCHAR,
   sale_date TIMESTAMP NOT NULL,
@@ -130,13 +130,13 @@ CREATE TABLE sales (
 );
 CREATE INDEX idx_sales_tenant_id ON sales(tenant_id);
 
--- 9. MERMAS
+-- 9. MERMAS (machine_id references machines)
 CREATE TABLE mermas (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   reported_by_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   ticket_id UUID REFERENCES tickets(id) ON DELETE SET NULL,
-  machine_id UUID REFERENCES assets(id) ON DELETE SET NULL,
+  machine_id UUID REFERENCES machines(id) ON DELETE SET NULL,
   product_name VARCHAR NOT NULL,
   quantity NUMERIC NOT NULL,
   unit_cost NUMERIC NOT NULL,
@@ -185,8 +185,8 @@ CREATE TABLE inventory (
 );
 CREATE INDEX idx_inventory_tenant_id ON inventory(tenant_id);
 
--- 12. MEDIA
-CREATE TABLE media (
+-- 12. ATTACHMENTS (renamed from media)
+CREATE TABLE attachments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
   uploaded_by_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -199,9 +199,60 @@ CREATE TABLE media (
   created_at TIMESTAMP DEFAULT NOW(),
   deleted_at TIMESTAMP
 );
-CREATE INDEX idx_media_tenant_id ON media(tenant_id);
+CREATE INDEX idx_attachments_tenant_id ON attachments(tenant_id);
 
--- 13. PASSWORD_RESETS
+-- 13. NFC_TAGS
+CREATE TABLE nfc_tags (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  tag_id VARCHAR(255) NOT NULL UNIQUE,
+  alias VARCHAR(255),
+  machine_id UUID REFERENCES machines(id) ON DELETE SET NULL,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  deleted_at TIMESTAMP
+);
+CREATE INDEX idx_nfc_tags_tenant_id ON nfc_tags(tenant_id);
+
+-- 14. WORK_ORDERS
+CREATE TABLE work_orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  created_by_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  assigned_to_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  machine_id UUID REFERENCES machines(id) ON DELETE SET NULL,
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  status VARCHAR DEFAULT 'pending',
+  priority VARCHAR DEFAULT 'medium',
+  due_date TIMESTAMP,
+  completed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW(),
+  deleted_at TIMESTAMP
+);
+CREATE INDEX idx_work_orders_tenant_id ON work_orders(tenant_id);
+
+-- 15. SYNC_QUEUE
+CREATE TABLE sync_queue (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id UUID NOT NULL REFERENCES tenants(id) ON DELETE CASCADE,
+  user_id UUID,
+  entity_type VARCHAR(50) NOT NULL,
+  entity_id UUID NOT NULL,
+  operation VARCHAR(20) NOT NULL,
+  payload JSONB,
+  status VARCHAR DEFAULT 'pending',
+  retry_count INTEGER DEFAULT 0,
+  error_message TEXT,
+  processed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+CREATE INDEX idx_sync_queue_tenant_id ON sync_queue(tenant_id);
+
+-- 16. PASSWORD_RESETS
 CREATE TABLE password_resets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -261,30 +312,30 @@ TENANTS:
 GET    /api/v1/tenants
 GET    /api/v1/tenants/:id
 POST   /api/v1/tenants
-PUT    /api/v1/tenants/:id
+PATCH  /api/v1/tenants/:id
 DELETE /api/v1/tenants/:id
 
 USERS (requiere JWT + rol ADMIN):
 GET    /api/v1/users
 GET    /api/v1/users/:id
 POST   /api/v1/users
-PUT    /api/v1/users/:id
+PATCH  /api/v1/users/:id
 DELETE /api/v1/users/:id
 
-ASSETS:
-GET    /api/v1/assets
-GET    /api/v1/assets/nfc/:nfcTagId
-GET    /api/v1/assets/:id
-POST   /api/v1/assets
-PUT    /api/v1/assets/:id
-DELETE /api/v1/assets/:id
+MACHINES (renamed from assets):
+GET    /api/v1/machines
+GET    /api/v1/machines/nfc/:nfcTagId
+GET    /api/v1/machines/:id
+POST   /api/v1/machines
+PATCH  /api/v1/machines/:id
+DELETE /api/v1/machines/:id
 
 VISITS:
 GET    /api/v1/visits
 GET    /api/v1/visits/my
 GET    /api/v1/visits/:id
 POST   /api/v1/visits
-PUT    /api/v1/visits/:id
+PATCH  /api/v1/visits/:id
 DELETE /api/v1/visits/:id
 
 TICKETS:
@@ -292,49 +343,49 @@ GET    /api/v1/tickets
 GET    /api/v1/tickets/my
 GET    /api/v1/tickets/:id
 POST   /api/v1/tickets
-PUT    /api/v1/tickets/:id
+PATCH  /api/v1/tickets/:id
 DELETE /api/v1/tickets/:id
 
 SECTORS:
 GET    /api/v1/sectors
 GET    /api/v1/sectors/:id
 POST   /api/v1/sectors
-PUT    /api/v1/sectors/:id
+PATCH  /api/v1/sectors/:id
 DELETE /api/v1/sectors/:id
 
 SALES:
 GET    /api/v1/sales
 GET    /api/v1/sales/:id
 POST   /api/v1/sales
-PUT    /api/v1/sales/:id
+PATCH  /api/v1/sales/:id
 DELETE /api/v1/sales/:id
 
 MERMAS:
 GET    /api/v1/mermas
 GET    /api/v1/mermas/:id
 POST   /api/v1/mermas
-PUT    /api/v1/mermas/:id
+PATCH  /api/v1/mermas/:id
 DELETE /api/v1/mermas/:id
 
 KPIS:
 GET    /api/v1/kpis
 GET    /api/v1/kpis/:id
 POST   /api/v1/kpis
-PUT    /api/v1/kpis/:id
+PATCH  /api/v1/kpis/:id
 DELETE /api/v1/kpis/:id
 
 INVENTORY:
 GET    /api/v1/inventory
 GET    /api/v1/inventory/:id
 POST   /api/v1/inventory
-PUT    /api/v1/inventory/:id
+PATCH  /api/v1/inventory/:id
 DELETE /api/v1/inventory/:id
 
-MEDIA:
-GET    /api/v1/media
-GET    /api/v1/media/:id
-POST   /api/v1/media
-DELETE /api/v1/media/:id
+ATTACHMENTS (renamed from media):
+GET    /api/v1/attachments
+GET    /api/v1/attachments/:id
+POST   /api/v1/attachments
+DELETE /api/v1/attachments/:id
 
 
 SECCIÓN 5: CARACTERÍSTICAS IMPORTANTES
@@ -344,8 +395,9 @@ SECCIÓN 5: CARACTERÍSTICAS IMPORTANTES
 - Soft deletes: todas las tablas tienen deleted_at
 - SSL automático si el host contiene "azure.com"
 - synchronize: false (no usa auto-sync de TypeORM)
-- 13 tablas en total
+- 16 tablas en total
 - Un rol por usuario (enum users_role_enum)
+- Endpoints PUT cambiados a PATCH para actualizaciones parciales
 
 
 SECCIÓN 6: DATOS MÍNIMOS PARA PROBAR
