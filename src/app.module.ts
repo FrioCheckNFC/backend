@@ -15,6 +15,7 @@ import { SyncQueueModule } from './sync-queue/sync-queue.module';
 // Entities
 import { Tenant } from './tenants/entities/tenant.entity';
 import { User } from './users/entities/user.entity';
+import { UserRoleEntity } from './users/entities/user-role.entity';
 import { Machine } from './machines/entities/machine.entity';
 import { NfcTag } from './nfc-tags/entities/nfc-tag.entity';
 import { Visit } from './visits/entities/visit.entity';
@@ -38,6 +39,7 @@ import { SyncQueue } from './sync-queue/entities/sync-queue.entity';
       entities: [
         Tenant,
         User,
+        UserRoleEntity,
         Machine,
         NfcTag,
         Visit,
