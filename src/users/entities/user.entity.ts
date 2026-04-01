@@ -29,6 +29,9 @@ export class User {
   @Column({ name: 'tenant_id', type: 'uuid' })
   tenant_id: string;
 
+  @Column({ name: 'tenant_name', length: 255, nullable: true })
+  tenant_name: string;
+
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
