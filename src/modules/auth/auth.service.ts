@@ -106,4 +106,19 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string) {
     return this.resetPasswordUseCase.execute(token, newPassword);
   }
+
+  async checkUser(identifier: string) {
+    const user = await this.usersRepo.findOne({
+      where: [{ email: identifier }, { rut: identifier }],
+    });
+    
+    if (!user) {
+      throw new BadRequestException('Usuario no encontrado');
+    }
+    
+    return {
+      exists: true,
+      active: user.active
+    };
+  }
 }

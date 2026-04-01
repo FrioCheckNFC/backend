@@ -1,7 +1,7 @@
 // AuthController: recibe las peticiones HTTP y las delega al AuthService.
 // No contiene logica de negocio, solo enruta.
 
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -49,5 +49,13 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Token invalido o expirado' })
   resetPassword(@Body() dto: ResetPasswordDto) {
     return this.authService.resetPassword(dto.token, dto.newPassword);
+  }
+
+  @Get('check-user/:identifier')
+  @ApiOperation({ summary: 'Verificar si un usuario existe (por email o RUT)' })
+  @ApiResponse({ status: 200, description: 'Usuario existe' })
+  @ApiResponse({ status: 400, description: 'Usuario no encontrado' })
+  checkUser(@Param('identifier') identifier: string) {
+    return this.authService.checkUser(identifier);
   }
 }
