@@ -14,6 +14,7 @@ export interface LoginOutput {
     firstName: string;
     lastName: string;
     role: string;
+    roles: string[]; // Compatibilidad app movil
     tenantId: string;
   };
 }
@@ -63,6 +64,7 @@ export class LoginUseCase {
       sub: user.id,
       email: user.email,
       role: user.role,
+      roles: [user.role], // Compatibilidad app movil
       tenantId: user.tenantId,
     });
 
@@ -74,6 +76,7 @@ export class LoginUseCase {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
+        roles: [user.role], // Compatibilidad app movil
         tenantId: user.tenantId,
       },
     };
