@@ -59,8 +59,13 @@ export class AuthService {
   }
 
   async login(user: any) {
-    // Obtener roles del usuario (de la tabla user_roles o fallback al campo role)
-    const roles = user.roles || (user.role ? [user.role] : []);
+    // Obtener roles del usuario desde userRoles o fallback al campo role
+    let roles: string[] = [];
+    if (user.userRoles && user.userRoles.length > 0) {
+      roles = user.userRoles.map((ur: any) => ur.role);
+    } else if (user.role) {
+      roles = [user.role];
+    }
     
     const payload = {
       email: user.email,
