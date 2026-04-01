@@ -22,39 +22,39 @@ export class TenantsController {
   constructor(private readonly tenantsService: TenantsService) {}
 
   @Post()
-  @RequireRoles('ADMIN')
+  @RequireRoles('SUPER_ADMIN')
   @HttpCode(HttpStatus.CREATED)
   create(@Body() createTenantDto: CreateTenantDto) {
     return this.tenantsService.create(createTenantDto);
   }
 
   @Get()
-  @RequireRoles('ADMIN')
+  @RequireRoles('SUPER_ADMIN')
   findAll() {
     return this.tenantsService.findAll();
   }
 
   // Specific routes BEFORE generic :id to avoid route conflicts
   @Get('slug/:slug')
-  @RequireRoles('ADMIN')
+  @RequireRoles('SUPER_ADMIN', 'ADMIN')
   findBySlug(@Param('slug') slug: string) {
     return this.tenantsService.findBySlug(slug);
   }
 
   @Get(':id')
-  @RequireRoles('ADMIN')
+  @RequireRoles('SUPER_ADMIN', 'ADMIN')
   findById(@Param('id') id: string) {
     return this.tenantsService.findById(id);
   }
 
   @Patch(':id')
-  @RequireRoles('ADMIN')
+  @RequireRoles('SUPER_ADMIN')
   update(@Param('id') id: string, @Body() updateTenantDto: UpdateTenantDto) {
     return this.tenantsService.update(id, updateTenantDto);
   }
 
   @Delete(':id')
-  @RequireRoles('ADMIN')
+  @RequireRoles('SUPER_ADMIN')
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.tenantsService.remove(id);
