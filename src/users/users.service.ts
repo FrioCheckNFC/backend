@@ -116,6 +116,18 @@ export class UsersService {
     await this.userRepository.softRemove(user);
   }
 
+  async deactivate(id: string): Promise<User> {
+    const user = await this.findById(id);
+    user.active = false;
+    return this.userRepository.save(user);
+  }
+
+  async activate(id: string): Promise<User> {
+    const user = await this.findById(id);
+    user.active = true;
+    return this.userRepository.save(user);
+  }
+
   async validatePassword(user: User, password: string): Promise<boolean> {
     return bcrypt.compare(password, user.password_hash);
   }

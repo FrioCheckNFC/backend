@@ -64,6 +64,18 @@ export class UsersController {
     return this.usersService.remove(id);
   }
 
+  @Patch(':id/deactivate')
+  @RequireRoles('SUPER_ADMIN', 'ADMIN', 'SUPPORT')
+  deactivate(@Param('id') id: string) {
+    return this.usersService.deactivate(id);
+  }
+
+  @Patch(':id/activate')
+  @RequireRoles('SUPER_ADMIN', 'ADMIN', 'SUPPORT')
+  activate(@Param('id') id: string) {
+    return this.usersService.activate(id);
+  }
+
   // ==========================================
   // ENDPOINTS DE ROLES
   // ==========================================
@@ -75,21 +87,21 @@ export class UsersController {
   }
 
   @Post(':id/roles')
-  @RequireRoles('SUPER_ADMIN', 'ADMIN')
+  @RequireRoles('SUPER_ADMIN', 'ADMIN', 'SUPPORT')
   @HttpCode(HttpStatus.CREATED)
   addRole(@Param('id') id: string, @Body() addRoleDto: AddRoleDto) {
     return this.usersService.addRole(id, addRoleDto.role);
   }
 
   @Delete(':id/roles/:role')
-  @RequireRoles('SUPER_ADMIN', 'ADMIN')
+  @RequireRoles('SUPER_ADMIN', 'ADMIN', 'SUPPORT')
   @HttpCode(HttpStatus.NO_CONTENT)
   removeRole(@Param('id') id: string, @Param('role') role: string) {
     return this.usersService.removeRole(id, role);
   }
 
   @Patch(':id/roles')
-  @RequireRoles('SUPER_ADMIN', 'ADMIN')
+  @RequireRoles('SUPER_ADMIN', 'ADMIN', 'SUPPORT')
   setRoles(@Param('id') id: string, @Body() setRolesDto: SetRolesDto) {
     return this.usersService.setRoles(id, setRolesDto.roles);
   }
