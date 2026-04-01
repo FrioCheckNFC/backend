@@ -23,6 +23,7 @@ import {
 import { VisitsService } from './visits.service';
 import { CreateVisitDto } from './dto/create-visit.dto';
 import { UpdateVisitDto } from './dto/update-visit.dto';
+import { VisitActionDto } from './dto/visit-action.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -46,13 +47,26 @@ export class VisitsController {
     return this.visitsService.findAll(req.user.tenantId);
   }
 
-  // GET /api/v1/visits/my — TECHNICIAN ve solo sus visitas
   @Get('my')
   @Roles('TECHNICIAN')
   @ApiOperation({ summary: 'Listar mis visitas (solo tecnico)' })
   @ApiResponse({ status: 200, description: 'Lista de mis visitas' })
   findMine(@Req() req) {
     return this.visitsService.findByTechnician(req.user.id, req.user.tenantId);
+  }
+
+  @Post('check-in')
+  @Roles('TECHNICIAN', 'ADMIN')
+  @ApiOperation({ summary: 'Iniciar una visita en sitio con NFC y GPS' })
+  checkIn(@Body() dto: VisitActionDto, @Req() req) {
+    return this.visitsService.checkIn(dto, req.user.id, req.user.tenantId);
+  }
+
+  @Post(':id/check-out')
+  @Roles('TECHNICIAN', 'ADMIN')
+  @ApiOperation({ summary: 'Finalizar una visita validando el NFC nuevamente' })
+  checkOut(@Param('id') id: string, @Body() dto: Omit<VisitActionDto, 'machineId'>, @Req() req) {
+    return this.visitsService.checkOut(id, dto, req.user.id, req.user.tenantId);
   }
 
   // GET /api/v1/visits/:id — Detalle de una visita

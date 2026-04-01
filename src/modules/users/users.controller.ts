@@ -1,8 +1,7 @@
 // users.controller.ts
 // Endpoints para gestionar usuarios dentro de un tenant.
-// Todos protegidos con JWT + rol ADMIN.
-// El tenantId se saca del token del admin logueado (no del body ni de la URL).
-// Asi un admin solo puede ver/crear/editar usuarios de SU empresa.
+// Protegidos con JWT + roles.
+// El tenantId se saca del token del admin logueado.
 
 import {
   Controller,
@@ -14,6 +13,8 @@ import {
   Param,
   Req,
   UseGuards,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -36,15 +37,23 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPPORT')
   @ApiOperation({ summary: 'Listar usuarios de mi empresa' })
   @ApiResponse({ status: 200, description: 'Lista de usuarios del tenant' })
   findAll(@Req() req) {
     return this.usersService.findAll(req.user.tenantId);
   }
 
+  // Ruta específica ANTES de :id para evitar conflictos
+  @Get('email/:email')
+  @Roles('ADMIN', 'SUPPORT')
+  @ApiOperation({ summary: 'Buscar usuario por email' })
+  findByEmail(@Param('email') email: string) {
+    return this.usersService.findByEmail(email);
+  }
+
   @Get(':id')
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPPORT')
   @ApiOperation({ summary: 'Obtener un usuario por ID' })
   @ApiResponse({ status: 200, description: 'Usuario encontrado' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
@@ -54,6 +63,7 @@ export class UsersController {
 
   @Post()
   @Roles('ADMIN')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Crear un usuario nuevo en mi empresa' })
   @ApiResponse({ status: 201, description: 'Usuario creado' })
   create(@Body() dto: CreateUserDto, @Req() req) {
@@ -70,9 +80,28 @@ export class UsersController {
 
   @Delete(':id')
   @Roles('ADMIN')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Eliminar un usuario (soft delete)' })
-  @ApiResponse({ status: 200, description: 'Usuario eliminado' })
+  @ApiResponse({ status: 204, description: 'Usuario eliminado' })
   remove(@Param('id') id: string, @Req() req) {
     return this.usersService.remove(id, req.user.tenantId);
+  }
+
+  // ==========================================
+  // ENDPOINTS NUEVOS DEL REPO DB
+  // ==========================================
+
+  @Patch(':id/deactivate')
+  @Roles('ADMIN', 'SUPPORT')
+  @ApiOperation({ summary: 'Desactivar un usuario' })
+  deactivate(@Param('id') id: string, @Req() req) {
+    return this.usersService.deactivate(id, req.user.tenantId);
+  }
+
+  @Patch(':id/activate')
+  @Roles('ADMIN', 'SUPPORT')
+  @ApiOperation({ summary: 'Activar un usuario' })
+  activate(@Param('id') id: string, @Req() req) {
+    return this.usersService.activate(id, req.user.tenantId);
   }
 }

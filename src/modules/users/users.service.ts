@@ -123,4 +123,18 @@ export class UsersService {
       where: [{ email: emailOrRut }, { rut: emailOrRut }],
     });
   }
+
+  async deactivate(id: string, tenantId: string): Promise<User> {
+    const user = await this.usersRepo.findOne({ where: { id, tenantId } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    user.active = false;
+    return this.usersRepo.save(user);
+  }
+
+  async activate(id: string, tenantId: string): Promise<User> {
+    const user = await this.usersRepo.findOne({ where: { id, tenantId } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+    user.active = true;
+    return this.usersRepo.save(user);
+  }
 }

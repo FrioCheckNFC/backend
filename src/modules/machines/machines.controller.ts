@@ -23,6 +23,7 @@ import {
 import { MachinesService } from './machines.service';
 import { CreateMachineDto } from './dto/create-machine.dto';
 import { UpdateMachineDto } from './dto/update-machine.dto';
+import { ScanMachineDto } from './dto/scan-machine.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -40,6 +41,14 @@ export class MachinesController {
   @ApiResponse({ status: 200, description: 'Lista de máquinas' })
   findAll(@Req() req) {
     return this.machinesService.findAll(req.user.tenantId);
+  }
+
+  @Post('scan')
+  @Roles('ADMIN', 'TECHNICIAN', 'VENDOR')
+  @ApiOperation({ summary: 'Escanear y validar NFC + GPS de una máquina' })
+  @ApiResponse({ status: 200, description: 'Resultado de la validación' })
+  scan(@Body() dto: ScanMachineDto, @Req() req) {
+    return this.machinesService.scan(dto, req.user.tenantId);
   }
 
   @Get('nfc/:nfcTagId')
