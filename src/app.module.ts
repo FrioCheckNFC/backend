@@ -1,67 +1,68 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AuthModule } from './auth/auth.module';
-import { TenantsModule } from './tenants/tenants.module';
-import { UsersModule } from './users/users.module';
-import { MachinesModule } from './machines/machines.module';
-import { NfcTagsModule } from './nfc-tags/nfc-tags.module';
-import { WorkOrdersModule } from './work-orders/work-orders.module';
-import { VisitsModule } from './visits/visits.module';
-import { TicketsModule } from './tickets/tickets.module';
-import { AttachmentsModule } from './attachments/attachments.module';
-import { SyncQueueModule } from './sync-queue/sync-queue.module';
-
-// Entities
-import { Tenant } from './tenants/entities/tenant.entity';
-import { User } from './users/entities/user.entity';
-import { UserRoleEntity } from './users/entities/user-role.entity';
-import { Machine } from './machines/entities/machine.entity';
-import { NfcTag } from './nfc-tags/entities/nfc-tag.entity';
-import { Visit } from './visits/entities/visit.entity';
-import { WorkOrder } from './work-orders/entities/work-order.entity';
-import { Ticket } from './tickets/entities/ticket.entity';
-import { Attachment } from './attachments/entities/attachment.entity';
-import { SyncQueue } from './sync-queue/entities/sync-queue.entity';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { TenantsModule } from './modules/tenants/tenants.module';
+import { UsersModule } from './modules/users/users.module';
+import { MachinesModule } from './modules/machines/machines.module';
+import { VisitsModule } from './modules/visits/visits.module';
+import { TicketsModule } from './modules/tickets/tickets.module';
+import { AttachmentsModule } from './modules/attachments/attachments.module';
+import { SectorsModule } from './modules/sectors/sectors.module';
+import { SalesModule } from './modules/sales/sales.module';
+import { MermasModule } from './modules/mermas/mermas.module';
+import { InventoryModule } from './modules/inventory/inventory.module';
+import { KpisModule } from './modules/kpis/kpis.module';
+import { NfcTagsModule } from './modules/nfc-tags/nfc-tags.module';
+import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
+import { SyncQueueModule } from './modules/sync-queue/sync-queue.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
+    // Lee las variables del archivo .env y las hace accesibles en toda la app
+    ConfigModule.forRoot({ isGlobal: true }),
+
+    // Conexion a PostgreSQL usando las variables del .env
+    // forRootAsync espera a que ConfigModule cargue antes de conectar
+    // synchronize:true crea las tablas automaticamente en desarrollo
+    // En produccion se reemplaza por migraciones
+    TypeOrmModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        type: 'postgres',
+        host: config.get('DB_HOST', 'localhost'),
+        port: config.get<number>('DB_PORT', 5432),
+        username: config.get('DB_USERNAME'),
+        password: config.get('DB_PASSWORD'),
+        database: config.get('DB_NAME'),
+        autoLoadEntities: true,
+        synchronize: false,
+        // SSL requerido para Azure PostgreSQL
+        ssl: config.get('DB_HOST', '').includes('azure.com')
+          ? { rejectUnauthorized: false }
+          : false,
+      }),
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432'),
-      username: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      database: process.env.DB_NAME,
-      entities: [
-        Tenant,
-        User,
-        UserRoleEntity,
-        Machine,
-        NfcTag,
-        Visit,
-        WorkOrder,
-        Ticket,
-        Attachment,
-        SyncQueue,
-      ],
-      synchronize: false,
-      logging: process.env.NODE_ENV !== 'production',
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    }),
+
     AuthModule,
     TenantsModule,
     UsersModule,
     MachinesModule,
-    NfcTagsModule,
-    WorkOrdersModule,
     VisitsModule,
     TicketsModule,
     AttachmentsModule,
+    SectorsModule,
+    SalesModule,
+    MermasModule,
+    InventoryModule,
+    KpisModule,
+    NfcTagsModule,
+    WorkOrdersModule,
     SyncQueueModule,
   ],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}
