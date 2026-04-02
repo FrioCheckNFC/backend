@@ -60,11 +60,15 @@ export class LoginUseCase {
       throw new InvalidCredentialsError('Email, RUT o contrasena incorrectos');
     }
 
+    const userRolesResult = await this.userReader.getUserRoles(user.id);
+    const role = userRolesResult && userRolesResult.length > 0
+      ? userRolesResult
+      : [user.role];
+
     const accessToken = this.tokenSigner.sign({
       sub: user.id,
       email: user.email,
-      role: user.role,
-      roles: [user.role], // Compatibilidad app movil
+      role,
       tenantId: user.tenantId,
     });
 
@@ -75,8 +79,7 @@ export class LoginUseCase {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
-        roles: [user.role], // Compatibilidad app movil
+        role,
         tenantId: user.tenantId,
       },
     };

@@ -33,4 +33,11 @@ export class TypeormAuthUserReaderAdapter implements AuthUserReaderPort {
       active: user.active,
     };
   }
+
+  async getUserRoles(userId: string): Promise<string[]> {
+    const result = await this.usersRepo.manager.query(
+      `SELECT role FROM user_roles WHERE user_id = $1`, [userId]
+    );
+    return result.map((r: any) => r.role);
+  }
 }
