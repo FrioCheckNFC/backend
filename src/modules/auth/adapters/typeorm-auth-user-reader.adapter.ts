@@ -22,8 +22,6 @@ export class TypeormAuthUserReaderAdapter implements AuthUserReaderPort {
       return null;
     }
 
-    const allRoles = [user.role];
-
     return {
       id: user.id,
       email: user.email,

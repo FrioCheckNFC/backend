@@ -24,7 +24,11 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'Login exitoso, devuelve JWT' })
   @ApiResponse({ status: 401, description: 'Credenciales invalidas' })
   login(@Body() dto: LoginDto) {
-    return this.authService.login(dto.email, dto.password);
+    const identifier = dto.email || dto.rut;
+    if (!identifier) {
+      throw new Error('El email o RUT es obligatorio');
+    }
+    return this.authService.login(identifier, dto.password);
   }
 
   @Post('register')
