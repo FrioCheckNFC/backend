@@ -3,13 +3,15 @@ import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 export class LoginDto {
   @IsOptional()
   @IsString()
-  @MinLength(1)
   identifier?: string;
 
   @IsOptional()
   @IsString()
-  @MinLength(1)
   email?: string;
+
+  @IsOptional()
+  @IsString()
+  rut?: string;
 
   @IsString()
   @MinLength(6)

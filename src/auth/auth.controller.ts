@@ -13,7 +13,7 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(@Body() loginDto: LoginDto) {
-    const loginIdentifier = loginDto.identifier ?? loginDto.email;
+    const loginIdentifier = loginDto.identifier ?? loginDto.email ?? loginDto.rut;
 
     if (!loginIdentifier) {
       throw new BadRequestException('Debe enviar identifier (RUT o email)');
