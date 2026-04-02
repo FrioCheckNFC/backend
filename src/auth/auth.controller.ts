@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus, BadRequestException, Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
@@ -47,5 +47,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   validateToken() {
     return { valid: true, message: 'Token válido' };
+  }
+
+  @Get('health')
+  @HttpCode(HttpStatus.OK)
+  health() {
+    return { status: 'ok', timestamp: new Date().toISOString() };
   }
 }
