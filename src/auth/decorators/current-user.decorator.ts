@@ -1,3 +1,4 @@
+// Current user decorator - obtiene el usuario actual del request
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const CurrentUser = createParamDecorator(
