@@ -11,4 +11,5 @@ export interface AuthUserRecord {
 
 export interface AuthUserReaderPort {
   findByEmail(email: string): Promise<AuthUserRecord | null>;
+  getUserRoles(userId: string): Promise<string[]>;
 }

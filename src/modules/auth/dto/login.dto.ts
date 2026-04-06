@@ -4,7 +4,7 @@
 // y rechazan el request si faltan campos o tienen tipo incorrecto.
 
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class LoginDto {
   // Email del usuario (campo unico en la BD, se usa para login)
@@ -12,8 +12,19 @@ export class LoginDto {
     example: 'admin@friocheck.com o 12345678-9',
     description: 'Email o RUT del usuario',
   })
-  @IsNotEmpty({ message: 'El email o RUT es obligatorio' })
-  email: string;
+  @IsOptional()
+  @IsString()
+  email?: string;
+
+  // RUT del usuario (para login desde app móvil)
+  @ApiProperty({
+    example: '12345678-9',
+    description: 'RUT del usuario',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  rut?: string;
 
   // Contrasena en texto plano (se compara contra el hash en la BD)
   @ApiProperty({ example: 'miClave123', description: 'Contrasena del usuario' })
