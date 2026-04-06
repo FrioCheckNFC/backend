@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
@@ -19,8 +20,30 @@ import { NfcTagsModule } from './modules/nfc-tags/nfc-tags.module';
 import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 import { SyncQueueModule } from './modules/sync-queue/sync-queue.module';
 
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard } from '@nestjs/throttler';
+
 @Module({
   imports: [
+    // Rate limiting para prevenir ataques de fuerza bruta
+    ThrottlerModule.forRoot([
+      {
+        name: 'short',
+        ttl: 1000, // 1 segundo
+        limit: 10, // 10 requests por segundo
+      },
+      {
+        name: 'medium',
+        ttl: 60000, // 1 minuto
+        limit: 60, // 60 requests por minuto
+      },
+      {
+        name: 'long',
+        ttl: 3600000, // 1 hora
+        limit: 300, // 300 requests por hora
+      },
+    ]),
+
     // Lee las variables del archivo .env y las hace accesibles en toda la app
     ConfigModule.forRoot({ isGlobal: true }),
 
@@ -63,6 +86,12 @@ import { SyncQueueModule } from './modules/sync-queue/sync-queue.module';
     SyncQueueModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
