@@ -138,6 +138,26 @@ export class UsersService {
     return this.usersRepo.save(user);
   }
 
+  async changePassword(
+    id: string,
+    currentPassword: string,
+    newPassword: string,
+    tenantId: string,
+  ): Promise<{ message: string }> {
+    const user = await this.usersRepo.findOne({ where: { id, tenantId } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isValid) {
+      throw new BadRequestException('La contraseña actual es incorrecta');
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, 10);
+    await this.usersRepo.save(user);
+
+    return { message: 'Contraseña actualizada correctamente' };
+  }
+
   async addRole(id: string, role: string, tenantId: string): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id, tenantId } });
     if (!user) throw new NotFoundException('Usuario no encontrado');

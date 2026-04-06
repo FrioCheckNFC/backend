@@ -25,6 +25,7 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -103,5 +104,23 @@ export class UsersController {
   @ApiOperation({ summary: 'Activar un usuario' })
   activate(@Param('id') id: string, @Req() req) {
     return this.usersService.activate(id, req.user.tenantId);
+  }
+
+  @Patch(':id/change-password')
+  @Roles('ADMIN', 'SUPPORT', 'VENDOR', 'TECHNICIAN', 'DRIVER', 'RETAILER')
+  @ApiOperation({ summary: 'Cambiar contraseña del usuario' })
+  @ApiResponse({ status: 200, description: 'Contraseña actualizada' })
+  @ApiResponse({ status: 400, description: 'Contraseña actual incorrecta' })
+  changePassword(
+    @Param('id') id: string,
+    @Body() dto: ChangePasswordDto,
+    @Req() req,
+  ) {
+    return this.usersService.changePassword(
+      id,
+      dto.currentPassword,
+      dto.newPassword,
+      req.user.tenantId,
+    );
   }
 }
