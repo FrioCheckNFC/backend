@@ -119,6 +119,7 @@ export class AuthService {
     return {
       exists: true,
       active: user.active,
+      email: user.email,
     };
   }
 }
