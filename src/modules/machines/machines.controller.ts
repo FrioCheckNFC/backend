@@ -24,6 +24,7 @@ import { MachinesService } from './machines.service';
 import { CreateMachineDto } from './dto/create-machine.dto';
 import { UpdateMachineDto } from './dto/update-machine.dto';
 import { ScanMachineDto } from './dto/scan-machine.dto';
+import { NfcReadDto } from './dto/nfc-read.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -51,8 +52,18 @@ export class MachinesController {
     return this.machinesService.scan(dto, req.user.tenantId);
   }
 
+  @Post('read')
+  @Roles('ADMIN', 'TECHNICIAN', 'VENDOR')
+  @ApiOperation({
+    summary: 'Leer tag NFC y obtener información viva del activo',
+  })
+  @ApiResponse({ status: 200, description: 'Información del activo' })
+  nfcRead(@Body() dto: NfcReadDto, @Req() req) {
+    return this.machinesService.nfcRead(dto, req.user.tenantId, req.user.role);
+  }
+
   @Get('nfc/:nfcTagId')
-  @Roles('ADMIN', 'TECHNICIAN')
+  @Roles('ADMIN', 'TECHNICIAN', 'VENDOR')
   @ApiOperation({ summary: 'Buscar máquina por tag NFC (escaneo en terreno)' })
   @ApiResponse({ status: 200, description: 'Máquina encontrada' })
   @ApiResponse({ status: 404, description: 'Tag NFC no encontrado' })
@@ -61,7 +72,7 @@ export class MachinesController {
   }
 
   @Get(':id')
-  @Roles('ADMIN', 'TECHNICIAN')
+  @Roles('ADMIN', 'TECHNICIAN', 'VENDOR')
   @ApiOperation({ summary: 'Obtener una máquina por ID' })
   @ApiResponse({ status: 200, description: 'Máquina encontrada' })
   @ApiResponse({ status: 404, description: 'Máquina no encontrada' })

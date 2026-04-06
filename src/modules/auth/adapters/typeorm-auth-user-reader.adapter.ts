@@ -16,13 +16,11 @@ export class TypeormAuthUserReaderAdapter implements AuthUserReaderPort {
 
   async findByEmail(emailOrRut: string): Promise<AuthUserRecord | null> {
     const user = await this.usersRepo.findOne({
-      where: [{ email: emailOrRut }, { rut: emailOrRut }]
+      where: [{ email: emailOrRut }, { rut: emailOrRut }],
     });
     if (!user) {
       return null;
     }
-
-    const allRoles = [user.role];
 
     return {
       id: user.id,

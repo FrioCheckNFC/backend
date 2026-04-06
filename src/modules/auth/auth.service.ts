@@ -75,7 +75,7 @@ export class AuthService {
       firstName: data.firstName,
       lastName: data.lastName,
       tenantId: data.tenantId,
-      role: 'TECHNICIAN', // FIX #2: siempre TECHNICIAN en registro público
+      role: ['TECHNICIAN'],
     });
 
     try {
@@ -86,8 +86,8 @@ export class AuthService {
         email: saved.email,
         firstName: saved.firstName,
         lastName: saved.lastName,
-        role: saved.role,
-        roles: [saved.role], // Compatibilidad App
+        role: saved.role[0],
+        roles: saved.role,
       };
     } catch (err: any) {
       if (err.code === '23503') {
@@ -111,14 +111,14 @@ export class AuthService {
     const user = await this.usersRepo.findOne({
       where: [{ email: identifier }, { rut: identifier }],
     });
-    
+
     if (!user) {
       throw new BadRequestException('Usuario no encontrado');
     }
-    
+
     return {
       exists: true,
-      active: user.active
+      active: user.active,
     };
   }
 }

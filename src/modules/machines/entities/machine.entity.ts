@@ -45,6 +45,27 @@ export class Machine {
   @Column({ name: 'nfc_tag_id', length: 255, nullable: true, unique: true })
   nfcTagId?: string;
 
+  @Column({ name: 'nfc_code', length: 255, nullable: true })
+  nfcCode?: string;
+
+  @Column({ name: 'client_name', length: 255, nullable: true })
+  clientName?: string;
+
+  @Column({ name: 'client_id', type: 'uuid', nullable: true })
+  clientId?: string;
+
+  @Column({ name: 'client_address', length: 255, nullable: true })
+  clientAddress?: string;
+
+  @Column({ name: 'client_phone', length: 50, nullable: true })
+  clientPhone?: string;
+
+  @Column({ name: 'client_rut', length: 20, nullable: true })
+  clientRut?: string;
+
+  @Column({ length: 50, default: 'OPERATIVE' })
+  status?: string;
+
   @Column({ nullable: true })
   location?: string;
 

@@ -72,6 +72,10 @@ export class Visit {
   @Column({ default: 'completed' })
   status: string;
 
+  // Tipo de visita: MAINTENANCE, SALE, INSPECTION, DELIVERY
+  @Column({ length: 50, nullable: true })
+  type?: string;
+
   // Fecha/hora en que se hizo la visita (puede diferir de createdAt si fue offline)
   @Column({ name: 'visited_at', type: 'timestamptz' })
   visitedAt: Date;

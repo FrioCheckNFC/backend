@@ -9,8 +9,18 @@ import {
   IsEmail,
   IsUUID,
   IsOptional,
-  IsIn,
+  IsArray,
+  ArrayMinSize,
 } from 'class-validator';
+
+const VALID_ROLES = [
+  'ADMIN',
+  'SUPPORT',
+  'VENDOR',
+  'RETAILER',
+  'TECHNICIAN',
+  'DRIVER',
+] as const;
 
 export class CreateUserDto {
   @ApiProperty({
@@ -49,12 +59,15 @@ export class CreateUserDto {
   phone?: string;
 
   @ApiProperty({
-    example: 'TECHNICIAN',
-    description: 'Rol: ADMIN, SUPPORT, VENDOR, RETAILER, TECHNICIAN, DRIVER',
+    example: ['TECHNICIAN', 'VENDOR'],
+    description:
+      'Roles: array de ADMIN, SUPPORT, VENDOR, RETAILER, TECHNICIAN, DRIVER',
+    required: false,
   })
   @IsOptional()
-  @IsIn(['ADMIN', 'SUPPORT', 'VENDOR', 'RETAILER', 'TECHNICIAN', 'DRIVER'])
-  role?: string;
+  @IsArray()
+  @ArrayMinSize(1)
+  role?: string[];
 
   @ApiProperty({
     example: '550e8400-e29b-41d4-a716-446655440000',

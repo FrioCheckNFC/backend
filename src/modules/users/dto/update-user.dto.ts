@@ -8,7 +8,7 @@ import {
   IsEmail,
   IsOptional,
   IsBoolean,
-  IsIn,
+  IsArray,
 } from 'class-validator';
 
 export class UpdateUserDto {
@@ -58,13 +58,14 @@ export class UpdateUserDto {
   phone?: string;
 
   @ApiProperty({
-    example: 'VENDOR',
-    description: 'Nuevo rol',
+    example: ['VENDOR', 'TECHNICIAN'],
+    description:
+      'Nuevos roles: array de ADMIN, SUPPORT, VENDOR, RETAILER, TECHNICIAN, DRIVER',
     required: false,
   })
   @IsOptional()
-  @IsIn(['ADMIN', 'SUPPORT', 'VENDOR', 'RETAILER', 'TECHNICIAN', 'DRIVER'])
-  role?: string;
+  @IsArray()
+  role?: string[];
 
   @ApiProperty({
     example: false,

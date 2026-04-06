@@ -77,7 +77,7 @@ export class UsersService {
       firstName: dto.firstName,
       lastName: dto.lastName,
       phone: dto.phone,
-      role: dto.role ?? 'TECHNICIAN',
+      role: dto.role ?? ['TECHNICIAN'],
       tenantId,
     });
 
@@ -136,5 +136,43 @@ export class UsersService {
     if (!user) throw new NotFoundException('Usuario no encontrado');
     user.active = true;
     return this.usersRepo.save(user);
+  }
+
+  async addRole(id: string, role: string, tenantId: string): Promise<User> {
+    const user = await this.usersRepo.findOne({ where: { id, tenantId } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    const validRoles = [
+      'ADMIN',
+      'SUPPORT',
+      'VENDOR',
+      'RETAILER',
+      'TECHNICIAN',
+      'DRIVER',
+    ];
+    if (!validRoles.includes(role)) {
+      throw new BadRequestException('Rol inválido');
+    }
+
+    if (!user.role.includes(role)) {
+      user.role = [...user.role, role];
+      await this.usersRepo.save(user);
+    }
+
+    return this.findOne(id, tenantId);
+  }
+
+  async removeRole(id: string, role: string, tenantId: string): Promise<User> {
+    const user = await this.usersRepo.findOne({ where: { id, tenantId } });
+    if (!user) throw new NotFoundException('Usuario no encontrado');
+
+    if (user.role.length <= 1) {
+      throw new BadRequestException('El usuario debe tener al menos un rol');
+    }
+
+    user.role = user.role.filter((r) => r !== role);
+    await this.usersRepo.save(user);
+
+    return this.findOne(id, tenantId);
   }
 }

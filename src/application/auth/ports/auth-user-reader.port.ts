@@ -4,7 +4,7 @@ export interface AuthUserRecord {
   passwordHash: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role: string[];
   tenantId: string;
   active: boolean;
 }

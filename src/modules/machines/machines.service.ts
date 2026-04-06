@@ -5,19 +5,24 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Machine } from './entities/machine.entity';
+import { NfcTag } from '../nfc-tags/entities/nfc-tag.entity';
 import { CreateMachineDto } from './dto/create-machine.dto';
 import { UpdateMachineDto } from './dto/update-machine.dto';
 import { ScanMachineDto } from './dto/scan-machine.dto';
+import { NfcReadDto } from './dto/nfc-read.dto';
 
 @Injectable()
 export class MachinesService {
   constructor(
     @InjectRepository(Machine)
     private machinesRepo: Repository<Machine>,
+    @InjectRepository(NfcTag)
+    private nfcTagsRepo: Repository<NfcTag>,
   ) {}
 
   async findAll(tenantId: string): Promise<Machine[]> {
@@ -99,7 +104,8 @@ export class MachinesService {
       throw new NotFoundException(`No se encontró máquina para este tag NFC`);
     }
 
-    const nfcValid = machine.nfcTagId === dto.nfcUid || machine.nfcTagId === dto.nfcTagId;
+    const nfcValid =
+      machine.nfcTagId === dto.nfcUid || machine.nfcTagId === dto.nfcTagId;
 
     let gpsDistanceMeters = 0;
     let gpsValid = false;
@@ -133,7 +139,12 @@ export class MachinesService {
     };
   }
 
-  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  private calculateDistance(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+  ): number {
     const R = 6371000;
     const dLat = this.toRad(lat2 - lat1);
     const dLng = this.toRad(lng2 - lng1);
@@ -149,5 +160,241 @@ export class MachinesService {
 
   private toRad(degrees: number): number {
     return (degrees * Math.PI) / 180;
+  }
+
+  private static readonly GPS_MAX_DISTANCE_METERS = 100;
+
+  private normalizeNfcId(nfcId: string): string {
+    const cleanId = nfcId.replace(/[:-]/g, '').toLowerCase();
+    if (cleanId.length === 32) {
+      return `${cleanId.slice(0, 8)}-${cleanId.slice(8, 12)}-${cleanId.slice(12, 16)}-${cleanId.slice(16, 20)}-${cleanId.slice(20, 32)}`;
+    }
+    return nfcId.toLowerCase();
+  }
+
+  async nfcRead(
+    dto: NfcReadDto,
+    tenantId: string,
+    userRoles?: string[],
+  ): Promise<any> {
+    const normalizedNfcId = this.normalizeNfcId(dto.nfcId);
+
+    const nfcTag = await this.nfcTagsRepo.findOne({
+      where: { tagId: normalizedNfcId, tenantId },
+    });
+
+    if (!nfcTag) {
+      throw new NotFoundException({
+        error: 'NFC_NOT_REGISTERED',
+        message: 'Este tag NFC no está registrado en esta empresa',
+        nfcId: normalizedNfcId,
+      });
+    }
+
+    if (!nfcTag.isActive) {
+      throw new ForbiddenException({
+        error: 'NFC_BLOCKED',
+        message: 'Este tag NFC está inactivo',
+        nfcId: normalizedNfcId,
+      });
+    }
+
+    const machine = await this.machinesRepo.findOne({
+      where: { id: nfcTag.machineId, tenantId },
+      relations: ['tenant'],
+    });
+
+    if (!machine) {
+      throw new NotFoundException({
+        error: 'MACHINE_NOT_LINKED',
+        message:
+          'El tag NFC está registrado pero no está vinculado a una máquina',
+        nfcId: normalizedNfcId,
+      });
+    }
+
+    const lastControl = await this.getLastControlDetails(machine.id, tenantId);
+    const recentVisits = await this.getRecentVisits(machine.id, tenantId, 5);
+    const allowedActions = this.getAllowedActions(userRoles);
+
+    let gpsDistanceMeters: number | null = null;
+    let gpsValid = false;
+
+    if (
+      machine.latitude &&
+      machine.longitude &&
+      dto.latitude &&
+      dto.longitude
+    ) {
+      const distance = this.calculateDistance(
+        parseFloat(machine.latitude.toString()),
+        parseFloat(machine.longitude.toString()),
+        dto.latitude,
+        dto.longitude,
+      );
+      gpsDistanceMeters = distance;
+      gpsValid = distance <= MachinesService.GPS_MAX_DISTANCE_METERS;
+    }
+
+    const machineStatus = this.normalizeStatus(
+      machine.status,
+      machine.isActive,
+    );
+    const isVendor = userRoles?.includes('VENDOR') ?? false;
+
+    return {
+      found: true,
+      machine: {
+        id: machine.id,
+        name: machine.name,
+        type: machine.type,
+        brand: machine.brand,
+        model: machine.model,
+        serialNumber: machine.serialNumber,
+        nfcId: machine.nfcTagId,
+        nfcCode: machine.nfcCode,
+        client: {
+          id: machine.clientId,
+          name: machine.clientName,
+          address: machine.clientAddress,
+          phone: machine.clientPhone,
+          rut: machine.clientRut,
+        },
+        status: machineStatus,
+        location: machine.location
+          ? {
+              address: machine.location,
+              latitude: machine.latitude,
+              longitude: machine.longitude,
+            }
+          : null,
+        isActive: machine.isActive,
+      },
+      lastControl,
+      visits: recentVisits,
+      allowedActions,
+      clientStatus: isVendor ? this.getClientStatus(machine.clientId) : null,
+      validation: {
+        gpsValid,
+        gpsDistanceMeters: gpsDistanceMeters
+          ? Math.round(gpsDistanceMeters)
+          : null,
+        maxDistanceMeters: MachinesService.GPS_MAX_DISTANCE_METERS,
+        isWithinRange: gpsValid,
+      },
+    };
+  }
+
+  private normalizeStatus(
+    status: string | undefined,
+    isActive: boolean,
+  ): string {
+    if (!isActive) return 'INACTIVE';
+    const validStatuses = [
+      'OPERATIVE',
+      'MAINTENANCE',
+      'OUT_OF_SERVICE',
+      'PENDING_INSTALL',
+    ];
+    const normalizedStatus = status || 'OPERATIVE';
+    return validStatuses.includes(normalizedStatus)
+      ? normalizedStatus
+      : 'OPERATIVE';
+  }
+
+  private getClientStatus(clientId?: string): any {
+    if (!clientId) return null;
+    return {
+      hasDebt: false,
+      pendingAmount: 0,
+      lastOrder: null,
+      canOrder: true,
+    };
+  }
+
+  private getAllowedActions(roles?: string[]): string[] {
+    const userRoles = roles || ['TECHNICIAN'];
+
+    const allActions: string[] = [];
+
+    if (userRoles.includes('ADMIN')) {
+      allActions.push(
+        'VIEW_MACHINE',
+        'VIEW_VISITS',
+        'CREATE_VISIT',
+        'CREATE_ORDER',
+        'REPORT_MERMA',
+        'UPDATE_MACHINE',
+        'DELETE_MACHINE',
+      );
+    }
+
+    if (userRoles.includes('TECHNICIAN')) {
+      allActions.push(
+        'VIEW_MACHINE',
+        'VIEW_VISITS',
+        'CREATE_VISIT',
+        'REPORT_MERMA',
+      );
+    }
+
+    if (userRoles.includes('VENDOR')) {
+      allActions.push(
+        'VIEW_MACHINE',
+        'VIEW_VISITS',
+        'CREATE_SALE',
+        'VIEW_CLIENT',
+      );
+    }
+
+    return [...new Set(allActions)];
+  }
+
+  private async getLastControlDetails(
+    machineId: string,
+    tenantId: string,
+  ): Promise<any | null> {
+    const lastVisit = await this.machinesRepo.manager.query(
+      `SELECT v.id, v.visited_at, v.status, v.type, v.notes, u.name as user_name, u.role
+       FROM visits v
+       LEFT JOIN users u ON u.id = v.technician_id
+       WHERE v.machine_id = $1 AND v.tenant_id = $2
+       ORDER BY v.visited_at DESC
+       LIMIT 1`,
+      [machineId, tenantId],
+    );
+    if (lastVisit.length === 0) return null;
+    const v = lastVisit[0];
+    return {
+      date: v.visited_at,
+      type: v.type,
+      status: v.status,
+      userName: v.user_name,
+      summary: v.notes,
+    };
+  }
+
+  private async getRecentVisits(
+    machineId: string,
+    tenantId: string,
+    limit: number,
+  ): Promise<any[]> {
+    const visits = await this.machinesRepo.manager.query(
+      `SELECT v.id, v.visited_at, v.status, v.type, u.name as user_name, u.role
+       FROM visits v
+       LEFT JOIN users u ON u.id = v.technician_id
+       WHERE v.machine_id = $1 AND v.tenant_id = $2
+       ORDER BY v.visited_at DESC
+       LIMIT $3`,
+      [machineId, tenantId, limit],
+    );
+    return visits.map((v: any) => ({
+      id: v.id,
+      date: v.visited_at,
+      type: v.type,
+      status: v.status,
+      userName: v.user_name,
+      userRole: v.role,
+    }));
   }
 }

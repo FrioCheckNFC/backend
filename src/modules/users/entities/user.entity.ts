@@ -45,15 +45,15 @@ export class User {
   @Column({ nullable: true })
   phone: string;
 
-  // Rol del usuario: ADMIN, SUPPORT, VENDOR, RETAILER, TECHNICIAN, DRIVER
-  // Esta columna mapea exactamente al ENUM "users_role_enum" de tu Azure DB
-  @Column({ 
-    name: 'role', 
-    type: 'enum', 
-    enum: ['ADMIN', 'SUPPORT', 'VENDOR', 'RETAILER', 'TECHNICIAN', 'DRIVER'], 
-    default: 'TECHNICIAN' 
+  // Roles del usuario: puede tener múltiples: ADMIN, SUPPORT, VENDOR, RETAILER, TECHNICIAN, DRIVER
+  // Esta columna mapea a un array de texto en PostgreSQL
+  @Column({
+    name: 'role',
+    type: 'text',
+    array: true,
+    default: '{TECHNICIAN}',
   })
-  role: string;
+  role: string[];
 
   // Tokens FCM para notificaciones push (opcional)
   @Column({ name: 'fcm_tokens', type: 'text', nullable: true })
@@ -73,4 +73,9 @@ export class User {
   // Soft delete: no se borra de la BD, solo se marca con fecha
   @DeleteDateColumn({ name: 'deleted_at' })
   deletedAt: Date;
+
+  // Helper para obtener el rol principal (primer rol del array)
+  get mainRole(): string {
+    return this.role && this.role.length > 0 ? this.role[0] : 'TECHNICIAN';
+  }
 }
