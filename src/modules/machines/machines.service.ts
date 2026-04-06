@@ -43,12 +43,32 @@ export class MachinesService {
   }
 
   async findByNfc(nfcTagId: string, tenantId: string): Promise<Machine> {
-    const machine = await this.machinesRepo.findOne({
-      where: { nfcTagId, tenantId },
+    const normalizedNfcId = this.normalizeNfcId(nfcTagId);
+
+    const nfcTag = await this.nfcTagsRepo.findOne({
+      where: { tagId: normalizedNfcId, tenantId },
     });
-    if (!machine) {
-      throw new NotFoundException('No se encontró una máquina con ese tag NFC');
+
+    if (!nfcTag) {
+      throw new NotFoundException(
+        'No se encontró un tag NFC registrado con ese ID en esta empresa',
+      );
     }
+
+    if (!nfcTag.isActive) {
+      throw new ForbiddenException('Este tag NFC está inactivo');
+    }
+
+    const machine = await this.machinesRepo.findOne({
+      where: { id: nfcTag.machineId, tenantId },
+    });
+
+    if (!machine) {
+      throw new NotFoundException(
+        'El tag NFC está registrado pero no está vinculado a una máquina',
+      );
+    }
+
     return machine;
   }
 
