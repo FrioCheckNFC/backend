@@ -15,6 +15,8 @@ export interface LoginOutput {
     lastName: string;
     role: string[];
     tenantId: string;
+    rut?: string;
+    phone?: string;
   };
 }
 
@@ -81,6 +83,8 @@ export class LoginUseCase {
         lastName: user.lastName,
         role,
         tenantId: user.tenantId,
+        rut: user.rut || undefined,
+        phone: user.phone || undefined,
       },
     };
   }

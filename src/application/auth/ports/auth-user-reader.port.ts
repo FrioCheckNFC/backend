@@ -5,6 +5,8 @@ export interface AuthUserRecord {
   firstName: string;
   lastName: string;
   role: string[];
+  rut?: string;
+  phone?: string;
   tenantId: string;
   active: boolean;
 }
