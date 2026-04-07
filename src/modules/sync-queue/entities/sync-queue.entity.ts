@@ -4,10 +4,28 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  DeleteDateColumn,
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { User } from '../../users/entities/user.entity';
+
+export enum SyncOperationType {
+  VISIT_CHECKIN = 'visit_check_in',
+  VISIT_CHECKOUT = 'visit_check_out',
+  WORK_ORDER_DELIVERY = 'work_order_delivery',
+  TICKET_REPORT = 'ticket_report',
+  TICKET_UPDATE = 'ticket_update',
+  ATTACHMENT_UPLOAD = 'attachment_upload',
+}
+
+export enum SyncStatus {
+  PENDIENTE = 'PENDIENTE',
+  SINCRONIZADO = 'SINCRONIZADO',
+  FALLIDO = 'FALLIDO',
+  REVISION_MANUAL = 'REVISION_MANUAL',
+}
 
 @Entity('sync_queue')
 export class SyncQueue {
@@ -15,42 +33,71 @@ export class SyncQueue {
   id: string;
 
   @Column({ name: 'tenant_id', type: 'uuid' })
-  tenantId: string;
+  tenant_id: string;
+
+  @Column({ name: 'user_id', type: 'uuid' })
+  user_id: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ name: 'user_id', type: 'uuid', nullable: true })
-  userId?: string;
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'user_id' })
+  user: User;
 
-  @Column({ name: 'entity_type', length: 50 })
-  entityType: string;
+  @Column({
+    name: 'operation_type',
+    type: 'enum',
+    enum: SyncOperationType,
+  })
+  operationType: SyncOperationType;
 
-  @Column({ name: 'entity_id', type: 'uuid' })
-  entityId: string;
+  @Column({
+    type: 'enum',
+    enum: SyncStatus,
+    default: SyncStatus.PENDIENTE,
+  })
+  status: SyncStatus;
 
-  @Column({ name: 'operation', length: 20 })
-  operation: string;
+  // JSON payload con los datos de la operación
+  @Column({ name: 'payload', type: 'json' })
+  payload: Record<string, any>;
 
-  @Column({ type: 'jsonb', nullable: true })
-  payload?: object;
-
-  @Column({ default: 'pending' })
-  status: string;
-
+  // Reintento automático
   @Column({ name: 'retry_count', default: 0 })
   retryCount: number;
 
+  @Column({ name: 'max_retries', default: 3 })
+  maxRetries: number;
+
   @Column({ name: 'error_message', type: 'text', nullable: true })
-  errorMessage?: string;
+  errorMessage: string;
 
-  @Column({ name: 'processed_at', type: 'timestamp', nullable: true })
-  processedAt?: Date;
+  @Column({ name: 'error_stack', type: 'text', nullable: true })
+  errorStack: string;
 
+  @Column({ name: 'next_retry_at', nullable: true })
+  nextRetryAt: Date;
+
+  // Sincronización
+  @Column({ name: 'synced_at', nullable: true })
+  syncedAt: Date;
+
+  // Referencia a la entidad creada después de sincronizar
+  @Column({ name: 'entity_id', type: 'uuid', nullable: true })
+  entityId: string;
+
+  @Column({ name: 'entity_type', length: 50, nullable: true })
+  entityType: string;
+
+  // Timestamps
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at' })
+  deletedAt: Date;
 }

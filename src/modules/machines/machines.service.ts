@@ -46,7 +46,7 @@ export class MachinesService {
     const normalizedNfcId = this.normalizeNfcId(nfcTagId);
 
     const nfcTag = await this.nfcTagsRepo.findOne({
-      where: { tagId: normalizedNfcId, tenantId },
+      where: { uid: normalizedNfcId, tenant_id: tenantId },
     });
 
     if (!nfcTag) {
@@ -60,7 +60,7 @@ export class MachinesService {
     }
 
     const machine = await this.machinesRepo.findOne({
-      where: { id: nfcTag.machineId, tenantId },
+      where: { id: nfcTag.machine_id, tenantId },
     });
 
     if (!machine) {
@@ -200,7 +200,7 @@ export class MachinesService {
     const normalizedNfcId = this.normalizeNfcId(dto.nfcId);
 
     const nfcTag = await this.nfcTagsRepo.findOne({
-      where: { tagId: normalizedNfcId, tenantId },
+      where: { uid: normalizedNfcId, tenant_id: tenantId },
     });
 
     if (!nfcTag) {
@@ -220,7 +220,7 @@ export class MachinesService {
     }
 
     const machine = await this.machinesRepo.findOne({
-      where: { id: nfcTag.machineId, tenantId },
+      where: { id: nfcTag.machine_id, tenantId },
       relations: ['tenant'],
     });
 

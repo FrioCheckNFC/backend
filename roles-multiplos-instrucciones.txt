@@ -1,0 +1,192 @@
+# Cambios para soportar múltiples roles por usuario (roles como array)
+
+
+1. Cambiar el tipo de `role` en TODOS estos archivos:
+   - src/modules/users/entities/user.entity.ts
+   - src/users/dto/user.dto.ts
+   - src/modules/users/dto/add-role.dto.ts
+   - src/modules/users/dto/create-user.dto.ts
+   - src/modules/users/dto/update-user.dto.ts
+   - src/application/auth/ports/token-signer.port.ts
+   - src/application/auth/ports/auth-user-reader.port.ts
+   - src/application/auth/use-cases/login.use-case.ts
+   - src/users/entities/user-role.entity.ts (si aplica)
+   - src/users/users.service.ts
+   - src/modules/users/users.service.ts
+   - src/modules/users/users.controller.ts
+   - src/users/users.controller.ts
+   - src/application/auth/dto/auth.dto.ts
+   - src/modules/users/dto/set-roles.dto.ts (si existe)
+   - src/application/auth/ports/token-signer.port.ts
+   - src/application/auth/ports/auth-user-reader.port.ts
+   - src/application/auth/use-cases/login.use-case.ts
+   - src/application/auth/use-cases/refresh-token.use-case.ts (si existe)
+   - src/application/auth/use-cases/register.use-case.ts (si existe)
+   - src/application/auth/use-cases/validate-user.use-case.ts (si existe)
+   - src/application/auth/use-cases/validate-token.use-case.ts (si existe)
+   - src/application/auth/use-cases/logout.use-case.ts (si existe)
+   - src/application/auth/use-cases/forgot-password.use-case.ts (si existe)
+   - src/application/auth/use-cases/reset-password.use-case.ts (si existe)
+   - src/application/auth/use-cases/change-password.use-case.ts (si existe)
+   - src/application/auth/use-cases/update-profile.use-case.ts (si existe)
+   - src/application/auth/use-cases/get-profile.use-case.ts (si existe)
+   - src/application/auth/use-cases/get-user-by-id.use-case.ts (si existe)
+   - src/application/auth/use-cases/get-users.use-case.ts (si existe)
+   - src/application/auth/use-cases/delete-user.use-case.ts (si existe)
+   - src/application/auth/use-cases/assign-role.use-case.ts (si existe)
+   - src/application/auth/use-cases/remove-role.use-case.ts (si existe)
+   - src/application/auth/use-cases/list-roles.use-case.ts (si existe)
+   - src/application/auth/use-cases/set-roles.use-case.ts (si existe)
+   - src/application/auth/use-cases/add-role.use-case.ts (si existe)
+   - src/application/auth/use-cases/remove-role.use-case.ts (si existe)
+   - src/application/auth/use-cases/get-roles.use-case.ts (si existe)
+   - src/application/auth/use-cases/update-roles.use-case.ts (si existe)
+   - src/application/auth/use-cases/assign-roles.use-case.ts (si existe)
+   - src/application/auth/use-cases/unassign-role.use-case.ts (si existe)
+   - src/application/auth/use-cases/unassign-roles.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-permission.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-permission.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-permissions.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-or-permission.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-or-permission.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-or-permissions.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-and-permission.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-and-permission.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-and-permissions.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-to-resource.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-to-resource.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-to-resource.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-permission-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-permission-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-permissions-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-or-permission-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-or-permission-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-or-permissions-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-and-permission-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-and-permission-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-and-permissions-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-to-resource-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-to-resource-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-to-resource-in-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-permission-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-permission-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-permissions-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-or-permission-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-or-permission-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-or-permissions-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-and-permission-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-and-permission-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-and-permissions-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-to-resource-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-to-resource-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-to-resource-in-any-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-permission-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-permission-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-permissions-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-or-permission-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-or-permission-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-or-permissions-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-and-permission-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-and-permission-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-and-permissions-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-to-resource-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-to-resource-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-to-resource-in-all-tenants.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-permission-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-permission-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-permissions-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-or-permission-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-or-permission-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-or-permissions-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-role-and-permission-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-role-and-permission-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-roles-and-permissions-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-access-to-resource-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-any-access-to-resource-in-every-tenant.use-case.ts (si existe)
+   - src/application/auth/use-cases/has-all-access-to-resource-in-every-tenant.use-case.ts (si existe)
+
+2. En la entidad User (TypeORM):
+   - Cambiar la columna:
+     ```typescript
+     @Column({
+       name: 'role',
+       type: 'text',
+       array: true,
+       default: '{}',
+     })
+     role: string[];
+     ```
+
+3. En los DTOs (por ejemplo, user.dto.ts, add-role.dto.ts, create-user.dto.ts, update-user.dto.ts):
+   - Usar validadores para arrays:
+     ```typescript
+     @IsArray()
+     @IsEnum(UserRole, { each: true })
+     role?: UserRole[];
+     ```
+   - Si el DTO es para agregar varios roles, usar array. Si es para agregar uno, puede ser string.
+
+4. En la lógica de negocio y servicios:
+   - Donde antes usabas `user.role === 'VENDOR'`, ahora usa `user.role.includes('VENDOR')`.
+   - Métodos para agregar/eliminar roles deben trabajar con arrays.
+
+5. Migración de base de datos:
+   - Crear una migración que cambie la columna `role` de string/enum a `text[]` (arreglo de texto).
+   - Ejemplo de migración:
+     - Renombrar columna original a `role_old`.
+     - Crear nueva columna `role` como `text[]`.
+     - Migrar datos: `UPDATE users SET role = ARRAY[role_old] WHERE role_old IS NOT NULL`.
+     - Eliminar columna vieja.
+     - (Si hay vistas dependientes, eliminarlas antes y recrearlas después).
+
+6. Adaptar la vista `users_view` (si existe):
+   - Ahora debe usar el campo `role` como array. Ejemplo:
+     ```sql
+     CREATE VIEW users_view AS
+     SELECT *, role[1] AS main_role FROM users;
+     ```
+
+7. Probar todo el flujo:
+   - Crear usuario con varios roles.
+   - Consultar usuario y verificar que `role` es un array.
+   - Probar endpoints que asignan, eliminan o consultan roles.
+
+---
+
+Si tienes dudas, revisa los archivos:
+- src/modules/users/entities/user.entity.ts
+- src/users/dto/user.dto.ts
+- src/modules/users/dto/add-role.dto.ts
+- src/migrations/1780000000000-UserRoleToArray.ts
+
+Y asegúrate de que todos los lugares donde se use `role` ahora lo traten como array.

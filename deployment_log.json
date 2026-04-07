@@ -1,0 +1,68 @@
+﻿{
+    "value":  [
+                  {
+                      "log_time":  "2026-04-07T18:12:46.470507Z",
+                      "id":  "7701cc5b-deca-400a-9426-72c8dca3b876",
+                      "message":  "Updating submodules.",
+                      "type":  0,
+                      "details_url":  null
+                  },
+                  {
+                      "log_time":  "2026-04-07T18:12:47.581256Z",
+                      "id":  "626944e0-6c1e-4893-bcef-b8dcfd27aa11",
+                      "message":  "Preparing deployment for commit id \u00272df7c92b-e\u0027.",
+                      "type":  0,
+                      "details_url":  null
+                  },
+                  {
+                      "log_time":  "2026-04-07T18:12:47.8929614Z",
+                      "id":  "f4245b2f-42a8-4545-9968-901784757625",
+                      "message":  "PreDeployment: context.CleanOutputPath False",
+                      "type":  0,
+                      "details_url":  null
+                  },
+                  {
+                      "log_time":  "2026-04-07T18:12:48.0146912Z",
+                      "id":  "130ea6f0-d02f-4797-b72a-982ba6c0fa59",
+                      "message":  "PreDeployment: context.OutputPath /home/site/wwwroot",
+                      "type":  0,
+                      "details_url":  null
+                  },
+                  {
+                      "log_time":  "2026-04-07T18:12:48.1502734Z",
+                      "id":  "7fb66b37-2930-47d2-bdb0-d7a54587720e",
+                      "message":  "Generating deployment script.",
+                      "type":  0,
+                      "details_url":  null
+                  },
+                  {
+                      "log_time":  "2026-04-07T18:12:48.2726141Z",
+                      "id":  "a9779643-7e5d-4c06-97b0-acdd340cc401",
+                      "message":  "Running deployment command...",
+                      "type":  0,
+                      "details_url":  "https://friocheck-api-b9eqhbd5ddevfbat.scm.canadacentral-01.azurewebsites.net/api/deployments/2df7c92b-e10d-406f-a4a8-1b1c963a32b0/log/a9779643-7e5d-4c06-97b0-acdd340cc401"
+                  },
+                  {
+                      "log_time":  "2026-04-07T18:12:50.5240998Z",
+                      "id":  "e8787937-9918-42b1-9cb7-2d1758a15c58",
+                      "message":  "Running post deployment command(s)...",
+                      "type":  0,
+                      "details_url":  null
+                  },
+                  {
+                      "log_time":  "2026-04-07T18:12:50.6555369Z",
+                      "id":  "0554f70c-efd5-444c-936a-61942e541035",
+                      "message":  "Triggering recycle (preview mode disabled).",
+                      "type":  0,
+                      "details_url":  null
+                  },
+                  {
+                      "log_time":  "2026-04-07T18:12:50.8348254Z",
+                      "id":  "a4037e9d-b9eb-4707-bc41-05c27159c9c1",
+                      "message":  "Deployment successful. deployer = Push-Deployer deploymentPath = ZipDeploy. Extract zip.",
+                      "type":  0,
+                      "details_url":  null
+                  }
+              ],
+    "Count":  9
+}

@@ -10,12 +10,14 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { WorkOrdersService } from './work-orders.service';
 import { CreateWorkOrderDto, UpdateWorkOrderDto, ValidateNfcDto } from './dto/work-order.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 
+@ApiTags('Work Orders')
 @Controller('work-orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class WorkOrdersController {
