@@ -86,8 +86,7 @@ export class AuthService {
         email: saved.email,
         firstName: saved.firstName,
         lastName: saved.lastName,
-        role: saved.role[0],
-        roles: saved.role, // Compatibilidad App
+        role: saved.role,
       };
     } catch (err: any) {
       if (err.code === '23503') {

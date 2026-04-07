@@ -13,8 +13,7 @@ export interface LoginOutput {
     email: string;
     firstName: string;
     lastName: string;
-    role: string | string[];
-    roles?: string[]; // Compatibilidad app movil
+    role: string[];
     tenantId: string;
     rut?: string;
     phone?: string;
@@ -71,8 +70,7 @@ export class LoginUseCase {
     const accessToken = this.tokenSigner.sign({
       sub: user.id,
       email: user.email,
-      role: role[0] || 'TECHNICIAN', // app legacy
-      roles: role,                   // nueva app
+      role,
       tenantId: user.tenantId,
     });
 
@@ -83,8 +81,7 @@ export class LoginUseCase {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: role[0] || 'TECHNICIAN',
-        roles: role,
+        role,
         tenantId: user.tenantId,
         rut: user.rut || undefined,
         phone: user.phone || undefined,
