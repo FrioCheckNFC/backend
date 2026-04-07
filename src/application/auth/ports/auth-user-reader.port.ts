@@ -5,8 +5,11 @@ export interface AuthUserRecord {
   firstName: string;
   lastName: string;
   role: string[];
+<<<<<<< Updated upstream
   rut?: string;
   phone?: string;
+=======
+>>>>>>> Stashed changes
   tenantId: string;
   active: boolean;
 }

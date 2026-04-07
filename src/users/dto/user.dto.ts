@@ -62,8 +62,9 @@ export class UpdateUserDto {
   password?: string;
 
   @IsOptional()
-  @IsEnum(UserRole)
-  role?: UserRole;
+  @IsArray()
+  @IsEnum(UserRole, { each: true })
+  role?: UserRole[];
 
   @IsOptional()
   @IsString()

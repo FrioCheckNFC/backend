@@ -77,7 +77,11 @@ export class UsersService {
       firstName: dto.firstName,
       lastName: dto.lastName,
       phone: dto.phone,
+<<<<<<< Updated upstream
       role: dto.role ?? ['TECHNICIAN'],
+=======
+      role: dto.role ? [dto.role] : ['TECHNICIAN'],
+>>>>>>> Stashed changes
       tenantId,
     });
 
@@ -103,7 +107,7 @@ export class UsersService {
     if (dto.firstName) user.firstName = dto.firstName;
     if (dto.lastName) user.lastName = dto.lastName;
     if (dto.phone !== undefined) user.phone = dto.phone;
-    if (dto.role) user.role = dto.role;
+    if (dto.role) user.role = [dto.role];
     if (dto.active !== undefined) user.active = dto.active;
 
     await this.usersRepo.save(user);

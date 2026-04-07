@@ -45,13 +45,22 @@ export class User {
   @Column({ nullable: true })
   phone: string;
 
+<<<<<<< Updated upstream
   // Roles del usuario: puede tener múltiples: ADMIN, SUPPORT, VENDOR, RETAILER, TECHNICIAN, DRIVER
   // Esta columna mapea a un array de texto en PostgreSQL
+=======
+  // Roles del usuario: ADMIN, SUPPORT, VENDOR, RETAILER, TECHNICIAN, DRIVER
+  // Se almacena como arreglo de texto en PostgreSQL. La validación de roles válidos se realiza en los DTOs y servicios.
+>>>>>>> Stashed changes
   @Column({
     name: 'role',
     type: 'text',
     array: true,
+<<<<<<< Updated upstream
     default: '{TECHNICIAN}',
+=======
+    default: '{}',
+>>>>>>> Stashed changes
   })
   role: string[];
 

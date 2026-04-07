@@ -10,6 +10,8 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
+  Logger,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { MachinesService } from './machines.service';
 import { CreateMachineDto, UpdateMachineDto } from './dto/machine.dto';
@@ -36,8 +38,13 @@ export class MachinesController {
   @Post('scan')
   @RequireRoles('ADMIN', 'VENDOR', 'TECHNICIAN', 'DRIVER', 'RETAILER')
   @HttpCode(HttpStatus.OK)
-  scan(@Body() scanMachineDto: ScanMachineDto, @CurrentTenant() tenantId: string) {
-    return this.machinesService.scan(scanMachineDto, tenantId);
+  async scan(@Body() scanMachineDto: ScanMachineDto, @CurrentTenant() tenantId: string) {
+    try {
+      return await this.machinesService.scan(scanMachineDto, tenantId);
+    } catch (err) {
+      Logger.error({ msg: 'Error in machines.scan', scanMachineDto, tenantId, err });
+      throw new InternalServerErrorException('Error scanning NFC tag');
+    }
   }
 
   @Get()
@@ -47,6 +54,17 @@ export class MachinesController {
     @Query('status') status?: MachineStatus,
   ) {
     return this.machinesService.findAll(tenantId, status);
+  }
+
+  @Get(':id/nfc-tag')
+  @RequireRoles('ADMIN', 'TECHNICIAN', 'VENDOR', 'DRIVER', 'RETAILER')
+  async getNfcTag(@Param('id') machineId: string, @CurrentTenant() tenantId: string) {
+    try {
+      return await this.machinesService.findById(machineId, tenantId);
+    } catch (err) {
+      Logger.error({ msg: 'Error en getNfcTag', machineId, tenantId, err });
+      throw new InternalServerErrorException('Error retrieving NFC tag for machine');
+    }
   }
 
   @Get(':id')
@@ -78,11 +96,5 @@ export class MachinesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id') id: string) {
     return this.machinesService.remove(id);
-  }
-
-  @Get(':id/nfc-tag')
-  @RequireRoles('ADMIN', 'TECHNICIAN', 'VENDOR', 'DRIVER', 'RETAILER')
-  getNfcTag(@Param('id') machineId: string, @CurrentTenant() tenantId: string) {
-    return this.machinesService.findById(machineId, tenantId);
   }
 }

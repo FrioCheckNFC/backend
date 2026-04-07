@@ -47,6 +47,8 @@ jobs:
           mkdir deployment
           cp -r dist deployment/
           cp package.json deployment/
+          # Elimina el script 'build' para que Azure no intente recompilar el proyecto (lo cual falla al no tener dependencias dev instaladas alli)
+          sed -i '/"build":.*,/d' deployment/package.json
           cp package-lock.json deployment/
           cp ormconfig.ts deployment/
 

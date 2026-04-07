@@ -2,6 +2,8 @@ import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import * as express from 'express';
 
 const API_PREFIX = 'api/v1';
 const SWAGGER_PATH = 'api';
@@ -16,6 +18,18 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   const logger = new Logger(bootstrap.name);
+
+  // Simple request logging for NFC/machines endpoints to aid debugging
+  const requestLogger = (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+    if (req.path.startsWith(`/${API_PREFIX}/machines`) || req.path.startsWith(`/${API_PREFIX}/nfc-tags`)) {
+      logger.debug(`Incoming request ${req.method} ${req.originalUrl} body=${JSON.stringify(req.body || {})}`);
+    }
+    next();
+  };
+  app.use(requestLogger);
+
+  // Global exception filter to log stack traces and request context
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   app.setGlobalPrefix(API_PREFIX);
 
