@@ -13,7 +13,7 @@ export interface LoginOutput {
     email: string;
     firstName: string;
     lastName: string;
-    role: string[];
+    role: string | string[];
     roles?: string[]; // Compatibilidad app movil
     tenantId: string;
     rut?: string;
@@ -82,7 +82,7 @@ export class LoginUseCase {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role,
+        role: role[0] || 'TECHNICIAN',
         roles: role,
         tenantId: user.tenantId,
         rut: user.rut || undefined,
