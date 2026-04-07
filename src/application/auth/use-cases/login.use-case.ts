@@ -71,7 +71,8 @@ export class LoginUseCase {
     const accessToken = this.tokenSigner.sign({
       sub: user.id,
       email: user.email,
-      role,
+      role: role[0] || 'TECHNICIAN', // app legacy
+      roles: role,                   // nueva app
       tenantId: user.tenantId,
     });
 

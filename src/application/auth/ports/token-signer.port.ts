@@ -1,7 +1,7 @@
 export interface TokenPayload {
   sub: string;
   email: string;
-  role: string[];
+  role: string | string[];
   roles?: string[]; // Compatibilidad App movil
   tenantId: string;
 }
