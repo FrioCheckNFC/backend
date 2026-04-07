@@ -18,6 +18,7 @@ async function bootstrap() {
 
   const app = await NestFactory.create(AppModule);
   const logger = new Logger(bootstrap.name);
+  logger.log('--- FrioCheck API v1.1 Starting with Swagger Refactor ---');
 
   // Simple request logging for NFC/machines endpoints to aid debugging
   const requestLogger = (req: express.Request, _res: express.Response, next: express.NextFunction) => {
