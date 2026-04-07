@@ -14,10 +14,7 @@ export interface LoginOutput {
     firstName: string;
     lastName: string;
     role: string[];
-<<<<<<< Updated upstream
-=======
-    roles: string[]; // Compatibilidad app movil
->>>>>>> Stashed changes
+    roles?: string[]; // Compatibilidad app movil
     tenantId: string;
     rut?: string;
     phone?: string;
@@ -66,16 +63,10 @@ export class LoginUseCase {
     }
 
     const userRolesResult = await this.userReader.getUserRoles(user.id);
-<<<<<<< Updated upstream
     const role =
       userRolesResult && userRolesResult.length > 0
         ? userRolesResult
         : user.role || ['TECHNICIAN'];
-=======
-    const role: string[] = userRolesResult && userRolesResult.length > 0
-      ? userRolesResult
-      : user.role;
->>>>>>> Stashed changes
 
     const accessToken = this.tokenSigner.sign({
       sub: user.id,

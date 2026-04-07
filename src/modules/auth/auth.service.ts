@@ -75,11 +75,7 @@ export class AuthService {
       firstName: data.firstName,
       lastName: data.lastName,
       tenantId: data.tenantId,
-<<<<<<< Updated upstream
-      role: ['TECHNICIAN'],
-=======
       role: ['TECHNICIAN'], // FIX #2: siempre TECHNICIAN en registro público
->>>>>>> Stashed changes
     });
 
     try {
@@ -90,13 +86,8 @@ export class AuthService {
         email: saved.email,
         firstName: saved.firstName,
         lastName: saved.lastName,
-<<<<<<< Updated upstream
         role: saved.role[0],
-        roles: saved.role,
-=======
-        role: saved.role,
         roles: saved.role, // Compatibilidad App
->>>>>>> Stashed changes
       };
     } catch (err: any) {
       if (err.code === '23503') {
