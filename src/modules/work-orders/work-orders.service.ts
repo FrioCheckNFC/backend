@@ -1,16 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WorkOrder } from './entities/work-order.entity';
 import { CreateWorkOrderDto, UpdateWorkOrderDto } from './dto/work-order.dto';
+import { NfcTagsService } from '../nfc-tags/nfc-tags.service';
 
 @Injectable()
 export class WorkOrdersService {
   constructor(
     @InjectRepository(WorkOrder)
     private readonly repo: Repository<WorkOrder>,
-    @Inject('NFC_TAGS_SERVICE_TOKEN')
-    private readonly nfcTagsService: any,
+    private readonly nfcTagsService: NfcTagsService,
   ) {}
 
   async create(dto: CreateWorkOrderDto, userId: string, tenantId: string): Promise<WorkOrder> {
@@ -67,7 +67,6 @@ export class WorkOrdersService {
     }
 
     try {
-      // Usar el servicio de NFC a través del token de inyección
       const machineTag = await this.nfcTagsService.findByMachineId(workOrder.machine.id, tenantId);
       const nfcMatches = machineTag && machineTag.uid === actualNfcUid;
 
@@ -83,7 +82,6 @@ export class WorkOrdersService {
       throw error;
     }
 
-    // Validación exitosa
     workOrder.status = 'in_progress';
     return this.repo.save(workOrder);
   }

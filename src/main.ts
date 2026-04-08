@@ -10,9 +10,11 @@ const API_PREFIX = 'api/v1';
 const SWAGGER_PATH = 'api';
 
 async function bootstrap() {
-  console.log('BOOTSTRAP: Process started. VERSION: NUCLEAR_TOKEN_V6');
+  console.log('BOOTSTRAP: Process started. VERSION: STABLE_EXPLICIT_V7');
   
-  // FIX #7: JWT_SECRET debe estar configurado antes de arrancar
+  // DIAGNOSTIC LOG (Password is hidden by not being logged)
+  console.log(`DIAGNOSTIC: DB_HOST = ${process.env.DB_HOST || 'NOT_SET'}`);
+  
   if (!process.env.JWT_SECRET) {
     console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables!');
     throw new Error(
@@ -21,66 +23,60 @@ async function bootstrap() {
   }
 
   try {
-    console.log('BOOTSTRAP: Creating Nest application instance...');
+    console.log('BOOTSTRAP: Creating Nest application instance (Explicit Entities Mode)...');
     const app = await NestFactory.create(AppModule);
     console.log('BOOTSTRAP: Nest application instance created successfully.');
     
     const logger = new Logger(bootstrap.name);
-    logger.log('--- FrioCheck API v1.3 Starting with Decoupled Architecture ---');
+    logger.log('--- FrioCheck API v1.4 Starting with Explicit Entity Registry ---');
 
-  // Simple request logging for NFC/machines endpoints to aid debugging
-  const requestLogger = (req: express.Request, _res: express.Response, next: express.NextFunction) => {
-    if (req.path.startsWith(`/${API_PREFIX}/machines`) || req.path.startsWith(`/${API_PREFIX}/nfc-tags`)) {
-      logger.debug(`Incoming request ${req.method} ${req.originalUrl} body=${JSON.stringify(req.body || {})}`);
-    }
-    next();
-  };
-  app.use(requestLogger);
+    const requestLogger = (req: express.Request, _res: express.Response, next: express.NextFunction) => {
+      if (req.path.startsWith(`/${API_PREFIX}/machines`) || req.path.startsWith(`/${API_PREFIX}/nfc-tags`)) {
+        logger.debug(`Incoming request ${req.method} ${req.originalUrl} body=${JSON.stringify(req.body || {})}`);
+      }
+      next();
+    };
+    app.use(requestLogger);
 
-  // Global exception filter to log stack traces and request context
-  app.useGlobalFilters(new AllExceptionsFilter());
+    app.useGlobalFilters(new AllExceptionsFilter());
+    app.setGlobalPrefix(API_PREFIX);
 
-  app.setGlobalPrefix(API_PREFIX);
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',')
+      : ['http://localhost:3000', 'http://localhost:4200', 'http://localhost:5173'];
 
-  // FIX #1: CORS restringido — solo los orígenes permitidos pueden hacer requests
-  // Configura ALLOWED_ORIGINS en tu .env (coma-separados). En dev acepta localhost.
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : ['http://localhost:3000', 'http://localhost:4200', 'http://localhost:5173'];
+    app.enableCors({
+      origin: allowedOrigins,
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+      credentials: true,
+    });
 
-  app.enableCors({
-    origin: allowedOrigins,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-  });
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
 
-  // FIX #9: ValidationPipe más estricto — rechaza campos desconocidos
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,           // elimina campos no declarados en el DTO
-      forbidNonWhitelisted: true, // lanza error si vienen campos extra
-      transform: true,            // convierte tipos automáticamente (ej: string->number)
-    }),
-  );
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle('FrioCheck API (v1.4 - Explicit Fix)')
+      .setDescription('Documentación oficial (Manual Entity Configuration)')
+      .setVersion('1.4')
+      .addBearerAuth()
+      .build();
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('FrioCheck API (v1.2 - Deploy Fix)')
-    .setDescription('Documentación oficial para los equipos de Móvil y Web')
-    .setVersion('1.2')
-    .addBearerAuth()
-    .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup(SWAGGER_PATH, app, document);
 
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup(SWAGGER_PATH, app, document);
+    const port = Number(process.env.PORT ?? 3000);
+    await app.listen(port, '0.0.0.0');
 
-  const port = Number(process.env.PORT ?? 3000);
-  await app.listen(port, '0.0.0.0');
-
-  logger.log(`Servidor corriendo en http://localhost:${port}/${API_PREFIX}`);
-  logger.log(`Swagger disponible en http://localhost:${port}/${SWAGGER_PATH}`);
+    logger.log(`Servidor corriendo en http://localhost:${port}/${API_PREFIX}`);
+    logger.log(`Swagger disponible en http://localhost:${port}/${SWAGGER_PATH}`);
   } catch (error) {
-    console.error('BOOTSTRAP ERROR: Failed to start the application.');
+    console.error('BOOTSTRAP ERROR: Failed to start the application in Explicit Mode.');
     console.error(error);
     process.exit(1);
   }

@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -20,37 +21,36 @@ import { NfcTagsModule } from './modules/nfc-tags/nfc-tags.module';
 import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 import { SyncQueueModule } from './modules/sync-queue/sync-queue.module';
 
+// EXPLICT ENTITY IMPORTS FOR AZURE STABILITY
+import { Attachment } from './modules/attachments/entities/attachment.entity';
+import { PasswordReset } from './modules/auth/entities/password-reset.entity';
+import { Inventory } from './modules/inventory/entities/inventory.entity';
+import { Kpi } from './modules/kpis/entities/kpi.entity';
+import { Machine } from './modules/machines/entities/machine.entity';
+import { Merma } from './modules/mermas/entities/merma.entity';
+import { NfcTag } from './modules/nfc-tags/entities/nfc-tag.entity';
+import { Sale } from './modules/sales/entities/sale.entity';
+import { Sector } from './modules/sectors/entities/sector.entity';
+import { SyncQueue } from './modules/sync-queue/entities/sync-queue.entity';
+import { Tenant } from './modules/tenants/entities/tenant.entity';
+import { Ticket } from './modules/tickets/entities/ticket.entity';
+import { User } from './modules/users/entities/user.entity';
+import { Visit } from './modules/visits/entities/visit.entity';
+import { WorkOrder } from './modules/work-orders/entities/work-order.entity';
+
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
-    // Rate limiting para prevenir ataques de fuerza bruta
     ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 1000, // 1 segundo
-        limit: 10, // 10 requests por segundo
-      },
-      {
-        name: 'medium',
-        ttl: 60000, // 1 minuto
-        limit: 60, // 60 requests por minuto
-      },
-      {
-        name: 'long',
-        ttl: 3600000, // 1 hora
-        limit: 300, // 300 requests por hora
-      },
+      { name: 'short', ttl: 1000, limit: 10 },
+      { name: 'medium', ttl: 60000, limit: 60 },
+      { name: 'long', ttl: 3600000, limit: 300 },
     ]),
 
-    // Lee las variables del archivo .env y las hace accesibles en toda la app
     ConfigModule.forRoot({ isGlobal: true }),
 
-    // Conexion a PostgreSQL usando las variables del .env
-    // forRootAsync espera a que ConfigModule cargue antes de conectar
-    // synchronize:true crea las tablas automaticamente en desarrollo
-    // En produccion se reemplaza por migraciones
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
@@ -60,9 +60,14 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         username: config.get('DB_USERNAME'),
         password: config.get('DB_PASSWORD'),
         database: config.get('DB_NAME'),
-        autoLoadEntities: true,
+        // MANUAL MODE: Explicitly list all entities to avoid Azure scanning failures
+        entities: [
+          Attachment, PasswordReset, Inventory, Kpi, Machine, 
+          Merma, NfcTag, Sale, Sector, SyncQueue, 
+          Tenant, Ticket, User, Visit, WorkOrder
+        ],
+        autoLoadEntities: false, 
         synchronize: false,
-        // SSL requerido para Azure PostgreSQL
         ssl: config.get('DB_HOST', '').includes('azure.com')
           ? { rejectUnauthorized: false }
           : false,
