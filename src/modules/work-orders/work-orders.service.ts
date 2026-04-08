@@ -11,6 +11,7 @@ export class WorkOrdersService {
   constructor(
     @InjectRepository(WorkOrder)
     private readonly repo: Repository<WorkOrder>,
+    @Inject(forwardRef(() => NfcTag))
     @InjectRepository(NfcTag)
     private readonly nfcTagsRepo: Repository<NfcTag>,
   ) {}
