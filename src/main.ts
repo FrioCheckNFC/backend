@@ -1,3 +1,4 @@
+console.log('OS_PROCESS: Entry point reached. Cold start initiated.');
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -10,7 +11,7 @@ const API_PREFIX = 'api/v1';
 const SWAGGER_PATH = 'api';
 
 async function bootstrap() {
-  console.log('BOOTSTRAP: Process started. VERSION: STABLE_ROBUST_V8');
+  console.log('BOOTSTRAP: Function started. VERSION: STABLE_FINAL_V9');
   
   // DIAGNOSTIC LOG (Password is hidden)
   console.log(`DIAGNOSTIC: DB_HOST = ${process.env.DB_HOST || 'NOT_SET'}`);
