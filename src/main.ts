@@ -19,9 +19,13 @@ async function bootstrap() {
     );
   }
 
-  const app = await NestFactory.create(AppModule);
-  const logger = new Logger(bootstrap.name);
-  logger.log('--- FrioCheck API v1.1 Starting with Swagger Refactor ---');
+  try {
+    console.log('BOOTSTRAP: Creating Nest application instance...');
+    const app = await NestFactory.create(AppModule);
+    console.log('BOOTSTRAP: Nest application instance created successfully.');
+    
+    const logger = new Logger(bootstrap.name);
+    logger.log('--- FrioCheck API v1.3 Starting with Decoupled Architecture ---');
 
   // Simple request logging for NFC/machines endpoints to aid debugging
   const requestLogger = (req: express.Request, _res: express.Response, next: express.NextFunction) => {
@@ -74,5 +78,10 @@ async function bootstrap() {
 
   logger.log(`Servidor corriendo en http://localhost:${port}/${API_PREFIX}`);
   logger.log(`Swagger disponible en http://localhost:${port}/${SWAGGER_PATH}`);
+  } catch (error) {
+    console.error('BOOTSTRAP ERROR: Failed to start the application.');
+    console.error(error);
+    process.exit(1);
+  }
 }
 bootstrap();
