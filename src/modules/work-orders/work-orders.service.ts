@@ -4,11 +4,15 @@ import { Repository } from 'typeorm';
 import { WorkOrder } from './entities/work-order.entity';
 import { CreateWorkOrderDto, UpdateWorkOrderDto } from './dto/work-order.dto';
 
+import { NfcTag } from '../nfc-tags/entities/nfc-tag.entity';
+
 @Injectable()
 export class WorkOrdersService {
   constructor(
     @InjectRepository(WorkOrder)
     private readonly repo: Repository<WorkOrder>,
+    @InjectRepository(NfcTag)
+    private readonly nfcTagsRepo: Repository<NfcTag>,
   ) {}
 
   async create(dto: CreateWorkOrderDto, userId: string, tenantId: string): Promise<WorkOrder> {
@@ -64,7 +68,12 @@ export class WorkOrdersService {
       throw new BadRequestException('Esta orden de trabajo no tiene una máquina asignada para validar NFC');
     }
 
-    const nfcMatches = workOrder.machine.nfcTagId === actualNfcUid;
+    // Buscar el tag registrado para esta máquina
+    const machineTag = await this.nfcTagsRepo.findOne({
+      where: { machine_id: workOrder.machine.id, tenant_id: tenantId },
+    });
+
+    const nfcMatches = machineTag && machineTag.uid === actualNfcUid;
 
     if (!nfcMatches) {
       // Registrar que falló
