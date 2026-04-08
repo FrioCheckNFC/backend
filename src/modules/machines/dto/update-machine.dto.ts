@@ -10,10 +10,7 @@ export class UpdateMachineDto {
   @IsString()
   name?: string;
 
-  @ApiProperty({ example: 'refrigerador', required: false })
-  @IsOptional()
-  @IsString()
-  type?: string;
+
 
   @ApiProperty({ example: 'Daikin', required: false })
   @IsOptional()

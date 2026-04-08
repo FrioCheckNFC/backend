@@ -374,7 +374,7 @@ export class MachinesService {
     tenantId: string,
   ): Promise<any | null> {
     const lastVisit = await this.machinesRepo.manager.query(
-      `SELECT v.id, v.visited_at, v.status, v.type, v.notes, u.name as user_name, u.role
+      `SELECT v.id, v.visited_at, v.status, v.notes, u.name as user_name, u.role
        FROM visits v
        LEFT JOIN users u ON u.id = v.technician_id
        WHERE v.machine_id = $1 AND v.tenant_id = $2
@@ -386,7 +386,6 @@ export class MachinesService {
     const v = lastVisit[0];
     return {
       date: v.visited_at,
-      type: v.type,
       status: v.status,
       userName: v.user_name,
       summary: v.notes,
@@ -399,7 +398,7 @@ export class MachinesService {
     limit: number,
   ): Promise<any[]> {
     const visits = await this.machinesRepo.manager.query(
-      `SELECT v.id, v.visited_at, v.status, v.type, u.name as user_name, u.role
+      `SELECT v.id, v.visited_at, v.status, u.name as user_name, u.role
        FROM visits v
        LEFT JOIN users u ON u.id = v.technician_id
        WHERE v.machine_id = $1 AND v.tenant_id = $2
@@ -410,7 +409,6 @@ export class MachinesService {
     return visits.map((v: any) => ({
       id: v.id,
       date: v.visited_at,
-      type: v.type,
       status: v.status,
       userName: v.user_name,
       userRole: v.role,

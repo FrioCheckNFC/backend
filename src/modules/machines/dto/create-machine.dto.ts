@@ -13,13 +13,7 @@ export class CreateMachineDto {
   @IsString()
   name: string;
 
-  @ApiProperty({
-    example: 'camara',
-    description: 'Tipo: camara, refrigerador, vitrina, etc.',
-  })
-  @IsNotEmpty({ message: 'El tipo es obligatorio' })
-  @IsString()
-  type: string;
+
 
   @ApiProperty({
     example: 'Carrier',
