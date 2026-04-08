@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, forwardRef, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WorkOrder } from './entities/work-order.entity';
@@ -11,7 +11,6 @@ export class WorkOrdersService {
   constructor(
     @InjectRepository(WorkOrder)
     private readonly repo: Repository<WorkOrder>,
-    @Inject(forwardRef(() => NfcTag))
     @InjectRepository(NfcTag)
     private readonly nfcTagsRepo: Repository<NfcTag>,
   ) {}
