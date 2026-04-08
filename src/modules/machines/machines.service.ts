@@ -77,12 +77,12 @@ export class MachinesService {
 
   async create(dto: CreateMachineDto, tenantId: string): Promise<Machine> {
     if (dto.nfcTagId) {
-      const exists = await this.machinesRepo.findOne({
-        where: { nfcTagId: dto.nfcTagId },
+      const exists = await this.nfcTagsRepo.findOne({
+        where: { uid: dto.nfcTagId, tenant_id: tenantId },
       });
       if (exists) {
         throw new BadRequestException(
-          'Ese tag NFC ya está asignado a otra máquina',
+          'Este tag NFC ya está asignado a otra máquina',
         );
       }
     }
@@ -98,11 +98,11 @@ export class MachinesService {
   ): Promise<Machine> {
     const machine = await this.findOne(id, tenantId);
 
-    if (dto.nfcTagId && dto.nfcTagId !== machine.nfcTagId) {
-      const nfcTaken = await this.machinesRepo.findOne({
-        where: { nfcTagId: dto.nfcTagId },
+    if (dto.nfcTagId) {
+      const nfcTag = await this.nfcTagsRepo.findOne({
+        where: { uid: dto.nfcTagId, tenant_id: tenantId },
       });
-      if (nfcTaken) {
+      if (nfcTag && nfcTag.machine_id !== id) {
         throw new BadRequestException(
           'Ese tag NFC ya está asignado a otra máquina',
         );
@@ -119,16 +119,23 @@ export class MachinesService {
   }
 
   async scan(dto: ScanMachineDto, tenantId: string): Promise<any> {
+    const nfcTag = await this.nfcTagsRepo.findOne({
+      where: { uid: dto.nfcTagId, tenant_id: tenantId },
+    });
+
+    if (!nfcTag) {
+      throw new NotFoundException(`No se encontró registro para este tag NFC`);
+    }
+
     const machine = await this.machinesRepo.findOne({
-      where: { nfcTagId: dto.nfcTagId, tenantId },
+      where: { id: nfcTag.machine_id, tenantId },
     });
 
     if (!machine) {
-      throw new NotFoundException(`No se encontró máquina para este tag NFC`);
+      throw new NotFoundException(`No se encontró máquina vinculada a este tag`);
     }
 
-    const nfcValid =
-      machine.nfcTagId === dto.nfcUid || machine.nfcTagId === dto.nfcTagId;
+    const nfcValid = true; // Si llegamos aquí el nfc_tag_id coincidió en nfc_tags table
 
     let gpsDistanceMeters = 0;
     let gpsValid = false;
@@ -276,8 +283,8 @@ export class MachinesService {
         brand: machine.brand,
         model: machine.model,
         serialNumber: machine.serialNumber,
-        nfcId: machine.nfcTagId,
-        nfcCode: machine.nfcCode,
+        nfcId: dto.nfcId, // Usamos el ID del DTO original
+        nfcCode: null,
         client: null,
         status: machineStatus,
         location: machine.latitude && machine.longitude

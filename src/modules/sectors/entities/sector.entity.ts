@@ -22,10 +22,10 @@ export class Sector {
   @Column({ type: 'varchar', nullable: true })
   address: string;
 
-  @Column({ name: 'location_lat', type: 'decimal', precision: 10, scale: 8, nullable: true })
+  @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
   latitude: number;
 
-  @Column({ name: 'location_lng', type: 'decimal', precision: 11, scale: 8, nullable: true })
+  @Column({ type: 'decimal', precision: 11, scale: 8, nullable: true })
   longitude: number;
 
   @Column({ name: 'is_active', type: 'boolean', default: true })

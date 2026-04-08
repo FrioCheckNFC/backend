@@ -26,7 +26,13 @@ export class Machine {
   assignedUserId?: string;
 
   @Column({ name: 'location_name', length: 255, nullable: true })
-  name: string;
+  name: string; 
+
+  @Column({ name: 'location_lat', type: 'float', nullable: true })
+  latitude?: number; 
+
+  @Column({ name: 'location_lng', type: 'float', nullable: true })
+  longitude?: number; 
 
   @Column({ length: 255, nullable: true })
   brand?: string;
@@ -37,21 +43,8 @@ export class Machine {
   @Column({ name: 'serial_number', length: 255, nullable: true })
   serialNumber?: string;
 
-  @Column({ length: 50, default: 'OPERATIVE' })
+  @Column({ length: 50, default: 'OPERATIVE', nullable: true })
   status?: string;
-
-  // Se mantienen estas columnas porque SÍ existen en la DB real:
-  @Column({ name: 'nfc_tag_id', length: 255, nullable: true, unique: true })
-  nfcTagId?: string;
-
-  @Column({ name: 'nfc_code', length: 255, nullable: true })
-  nfcCode?: string;
-
-  @Column({ name: 'location_lat', type: 'float', nullable: true })
-  latitude?: number;
-
-  @Column({ name: 'location_lng', type: 'float', nullable: true })
-  longitude?: number;
 
   @Column({ name: 'is_active', default: true })
   isActive: boolean;
