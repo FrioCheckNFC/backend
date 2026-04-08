@@ -6,8 +6,14 @@ import { NfcTagsController } from './nfc-tags.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([NfcTag])],
-  providers: [NfcTagsService],
+  providers: [
+    NfcTagsService,
+    {
+      provide: 'NFC_TAGS_SERVICE_TOKEN',
+      useClass: NfcTagsService,
+    },
+  ],
   controllers: [NfcTagsController],
-  exports: [NfcTagsService, TypeOrmModule],
+  exports: [NfcTagsService, 'NFC_TAGS_SERVICE_TOKEN', TypeOrmModule],
 })
 export class NfcTagsModule {}

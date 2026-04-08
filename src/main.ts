@@ -10,7 +10,7 @@ const API_PREFIX = 'api/v1';
 const SWAGGER_PATH = 'api';
 
 async function bootstrap() {
-  console.log('BOOTSTRAP: Process started. VERSION: STABLE_V5_CLEAN');
+  console.log('BOOTSTRAP: Process started. VERSION: NUCLEAR_TOKEN_V6');
   
   // FIX #7: JWT_SECRET debe estar configurado antes de arrancar
   if (!process.env.JWT_SECRET) {
