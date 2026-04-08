@@ -53,25 +53,32 @@ import { ThrottlerGuard } from '@nestjs/throttler';
 
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        host: config.get('DB_HOST', 'localhost'),
-        port: config.get<number>('DB_PORT', 5432),
-        username: config.get('DB_USERNAME'),
-        password: config.get('DB_PASSWORD'),
-        database: config.get('DB_NAME'),
-        // MANUAL MODE: Explicitly list all entities to avoid Azure scanning failures
-        entities: [
-          Attachment, PasswordReset, InventoryItem, Kpi, Machine, 
-          Merma, NfcTag, Sale, Sector, SyncQueue, 
-          Tenant, Ticket, User, Visit, WorkOrder
-        ],
-        autoLoadEntities: false, 
-        synchronize: false,
-        ssl: config.get('DB_HOST', '').includes('azure.com')
-          ? { rejectUnauthorized: false }
-          : false,
-      }),
+      useFactory: (config: ConfigService) => {
+        const host = config.get('DB_HOST', 'localhost');
+        const isAzure = host.includes('azure.com') || host.includes('database.windows.net');
+        
+        console.log(`BOOTSTRAP: Initializing TypeORM for host: ${host} (SSL: ${isAzure})`);
+        
+        return {
+          type: 'postgres',
+          host,
+          port: config.get<number>('DB_PORT', 5432),
+          username: config.get('DB_USERNAME'),
+          password: config.get('DB_PASSWORD'),
+          database: config.get('DB_NAME'),
+          entities: [
+            Attachment, PasswordReset, InventoryItem, Kpi, Machine, 
+            Merma, NfcTag, Sale, Sector, SyncQueue, 
+            Tenant, Ticket, User, Visit, WorkOrder
+          ],
+          autoLoadEntities: false, 
+          synchronize: false,
+          // Reintentos agresivos para asegurar el arranque si la base de datos tarda en despertar
+          retryAttempts: 10,
+          retryDelay: 3000,
+          ssl: isAzure ? { rejectUnauthorized: false } : false,
+        };
+      },
     }),
 
     AuthModule,
