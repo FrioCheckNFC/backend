@@ -46,7 +46,10 @@ export class MachinesService {
     const normalizedNfcId = this.normalizeNfcId(nfcTagId);
 
     const nfcTag = await this.nfcTagsRepo.findOne({
-      where: { uid: normalizedNfcId, tenant_id: tenantId },
+      where: [
+        { id: normalizedNfcId, tenant_id: tenantId },
+        { uid: normalizedNfcId, tenant_id: tenantId },
+      ],
     });
 
     if (!nfcTag) {
@@ -200,7 +203,10 @@ export class MachinesService {
     const normalizedNfcId = this.normalizeNfcId(dto.nfcId);
 
     const nfcTag = await this.nfcTagsRepo.findOne({
-      where: { uid: normalizedNfcId, tenant_id: tenantId },
+      where: [
+        { id: normalizedNfcId, tenant_id: tenantId },
+        { uid: normalizedNfcId, tenant_id: tenantId },
+      ],
     });
 
     if (!nfcTag) {
