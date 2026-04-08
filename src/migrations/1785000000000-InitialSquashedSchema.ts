@@ -222,7 +222,7 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     `);
   }
 
-  public async down(queryRunner: Promise<QueryRunner>): Promise<void> {
+  public async down(queryRunner: QueryRunner): Promise<void> {
     // No es necesario implementar down para un squash inicial que se sincroniza manualmente
   }
 }
