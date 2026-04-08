@@ -24,7 +24,7 @@ import { SyncQueueModule } from './modules/sync-queue/sync-queue.module';
 // EXPLICT ENTITY IMPORTS FOR AZURE STABILITY
 import { Attachment } from './modules/attachments/entities/attachment.entity';
 import { PasswordReset } from './modules/auth/entities/password-reset.entity';
-import { Inventory } from './modules/inventory/entities/inventory.entity';
+import { InventoryItem } from './modules/inventory/entities/inventory.entity';
 import { Kpi } from './modules/kpis/entities/kpi.entity';
 import { Machine } from './modules/machines/entities/machine.entity';
 import { Merma } from './modules/mermas/entities/merma.entity';
@@ -62,7 +62,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
         database: config.get('DB_NAME'),
         // MANUAL MODE: Explicitly list all entities to avoid Azure scanning failures
         entities: [
-          Attachment, PasswordReset, Inventory, Kpi, Machine, 
+          Attachment, PasswordReset, InventoryItem, Kpi, Machine, 
           Merma, NfcTag, Sale, Sector, SyncQueue, 
           Tenant, Ticket, User, Visit, WorkOrder
         ],
