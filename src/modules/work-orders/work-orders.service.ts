@@ -11,7 +11,7 @@ export class WorkOrdersService {
     @InjectRepository(WorkOrder)
     private readonly repo: Repository<WorkOrder>,
     @Inject(forwardRef(() => NfcTagsService))
-    private readonly nfcTagsService: NfcTagsService,
+    private readonly nfcTagsService: any,
   ) {}
 
   async create(dto: CreateWorkOrderDto, userId: string, tenantId: string): Promise<WorkOrder> {
