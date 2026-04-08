@@ -9,10 +9,13 @@ const API_PREFIX = 'api/v1';
 const SWAGGER_PATH = 'api';
 
 async function bootstrap() {
+  console.log('BOOTSTRAP: Process started. Checking environment...');
+  
   // FIX #7: JWT_SECRET debe estar configurado antes de arrancar
   if (!process.env.JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables!');
     throw new Error(
-      'JWT_SECRET no está configurado. Define JWT_SECRET en tu .env antes de arrancar.',
+      'JWT_SECRET no está configurado. Define JWT_SECRET en tu .env o en la configuración de Azure antes de arrancar.',
     );
   }
 
