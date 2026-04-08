@@ -27,7 +27,6 @@ jobs:
         run: |
           npm ci
           npm run build
-          npm prune --production
 
       - name: Run database migrations
         env:
@@ -42,6 +41,9 @@ jobs:
           npx ts-node -r tsconfig-paths/register scripts/sync-migrations.ts
           # Then run any new migrations
           npm run migration:run
+
+      - name: Clean dev dependencies for production
+        run: npm prune --production
 
       - name: Create deployment package
         run: |
