@@ -27,7 +27,7 @@ export class Machine {
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ length: 255 })
+  @Column({ name: 'location_name', length: 255, nullable: true })
   name: string;
 
   @Column({ length: 100 })
@@ -69,10 +69,10 @@ export class Machine {
   @Column({ nullable: true })
   location?: string;
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ name: 'location_lat', type: 'float', nullable: true })
   latitude?: number;
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ name: 'location_lng', type: 'float', nullable: true })
   longitude?: number;
 
   @Column({ name: 'is_active', default: true })
