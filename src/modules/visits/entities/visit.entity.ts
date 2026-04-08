@@ -47,10 +47,10 @@ export class Visit {
   machine: Machine;
 
   // FIX #11: 'float' en vez de 'decimal' para que TypeORM devuelva number (no string)
-  @Column({ type: 'float', nullable: true })
+  @Column({ name: 'latitude', type: 'float', nullable: true })
   latitude?: number;
 
-  @Column({ type: 'float', nullable: true })
+  @Column({ name: 'longitude', type: 'float', nullable: true })
   longitude?: number;
 
   // Tag NFC que escaneo (para comprobar que estuvo fisicamente ahi)

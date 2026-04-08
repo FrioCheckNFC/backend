@@ -34,7 +34,7 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
         { name: 'first_name', type: 'varchar', length: '255', isNullable: false },
         { name: 'last_name', type: 'varchar', length: '255', isNullable: false },
         { name: 'phone', type: 'varchar', length: '20', isNullable: true },
-        { name: 'role', type: 'text', isArray: true, default: "'{}'", isNullable: false },
+        { name: 'role', type: 'text', isArray: true, default: "'{TECHNICIAN}'", isNullable: false },
         { name: 'tenant_name', type: 'varchar', length: '255', isNullable: true },
         { name: 'fcm_tokens', type: 'text', isNullable: true },
         { name: 'active', type: 'boolean', default: true },
@@ -45,7 +45,6 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     }), true);
 
     await queryRunner.createForeignKey('users', new TableForeignKey({ columnNames: ['tenant_id'], referencedTableName: 'tenants', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
-    await queryRunner.createIndex('users', new TableIndex({ columnNames: ['tenant_id'] }));
 
     // --- MACHINES ---
     await queryRunner.createTable(new Table({
@@ -54,13 +53,13 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
         { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
         { name: 'tenant_id', type: 'uuid', isNullable: false },
         { name: 'assigned_user_id', type: 'uuid', isNullable: true },
-        { name: 'serial_number', type: 'varchar', length: '100', isNullable: false, isUnique: true },
-        { name: 'model', type: 'varchar', length: '100', isNullable: false },
-        { name: 'brand', type: 'varchar', length: '100', isNullable: true },
-        { name: 'location_name', type: 'varchar', length: '200', isNullable: true },
-        { name: 'location_lat', type: 'decimal', precision: 10, scale: 8, isNullable: true },
-        { name: 'location_lng', type: 'decimal', precision: 11, scale: 8, isNullable: true },
-        { name: 'status', type: 'varchar', length: '50', default: "'OPERATIVE'", isNullable: false },
+        { name: 'serial_number', type: 'varchar', length: '255', isNullable: true, isUnique: true },
+        { name: 'model', type: 'varchar', length: '255', isNullable: true },
+        { name: 'brand', type: 'varchar', length: '255', isNullable: true },
+        { name: 'location_name', type: 'varchar', length: '255', isNullable: true },
+        { name: 'location_lat', type: 'float', isNullable: true },
+        { name: 'location_lng', type: 'float', isNullable: true },
+        { name: 'status', type: 'varchar', length: '50', default: "'OPERATIVE'" },
         { name: 'nfc_tag_id', type: 'varchar', length: '255', isUnique: true, isNullable: true },
         { name: 'nfc_code', type: 'varchar', length: '255', isNullable: true },
         { name: 'is_active', type: 'boolean', default: true },
@@ -70,52 +69,22 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
       ],
     }), true);
 
-    await queryRunner.createForeignKey('machines', new TableForeignKey({ columnNames: ['tenant_id'], referencedTableName: 'tenants', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
-    await queryRunner.createForeignKey('machines', new TableForeignKey({ columnNames: ['assigned_user_id'], referencedTableName: 'users', referencedColumnNames: ['id'], onDelete: 'SET NULL' }));
-    await queryRunner.createIndex('machines', new TableIndex({ columnNames: ['tenant_id'] }));
-
-    // --- NFC_TAGS ---
-    await queryRunner.createTable(new Table({
-      name: 'nfc_tags',
-      columns: [
-        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
-        { name: 'tenant_id', type: 'uuid', isNullable: false },
-        { name: 'machine_id', type: 'uuid', isNullable: false },
-        { name: 'uid', type: 'varchar', length: '20', isNullable: false, isUnique: true },
-        { name: 'tag_model', type: 'varchar', length: '20', default: "'NTAG-215'" },
-        { name: 'hardware_model', type: 'varchar', length: '20', default: "'NTAG215'" },
-        { name: 'machine_serial_id', type: 'varchar', length: '255', isNullable: false },
-        { name: 'tenant_id_obfuscated', type: 'varchar', length: '255', isNullable: false },
-        { name: 'integrity_checksum', type: 'varchar', length: '255', isNullable: false },
-        { name: 'is_locked', type: 'boolean', default: false },
-        { name: 'is_active', type: 'boolean', default: true },
-        { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
-        { name: 'updated_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
-        { name: 'deleted_at', type: 'timestamp', isNullable: true },
-      ],
-    }), true);
-
-    await queryRunner.createForeignKey('nfc_tags', new TableForeignKey({ columnNames: ['tenant_id'], referencedTableName: 'tenants', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
-    await queryRunner.createForeignKey('nfc_tags', new TableForeignKey({ columnNames: ['machine_id'], referencedTableName: 'machines', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
-
     // --- VISITS ---
     await queryRunner.createTable(new Table({
       name: 'visits',
       columns: [
         { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
         { name: 'tenant_id', type: 'uuid', isNullable: false },
-        { name: 'user_id', type: 'uuid', isNullable: false },
+        { name: 'technician_id', type: 'uuid', isNullable: false },
         { name: 'machine_id', type: 'uuid', isNullable: false },
-        { name: 'check_in_timestamp', type: 'timestamp', isNullable: false },
-        { name: 'check_out_timestamp', type: 'timestamp', isNullable: true },
-        { name: 'check_in_nfc_uid', type: 'varchar', length: '20', isNullable: false },
-        { name: 'check_out_nfc_uid', type: 'varchar', length: '20', isNullable: true },
-        { name: 'check_in_gps_lat', type: 'decimal', precision: 10, scale: 8, isNullable: false },
-        { name: 'check_in_gps_lng', type: 'decimal', precision: 11, scale: 8, isNullable: false },
-        { name: 'check_out_gps_lat', type: 'decimal', precision: 10, scale: 8, isNullable: true },
-        { name: 'check_out_gps_lng', type: 'decimal', precision: 11, scale: 8, isNullable: true },
-        { name: 'status', type: 'varchar', length: '50', default: "'ABIERTA'", isNullable: false },
-        { name: 'validation_notes', type: 'text', isNullable: true },
+        { name: 'latitude', type: 'float', isNullable: true },
+        { name: 'longitude', type: 'float', isNullable: true },
+        { name: 'nfc_tag_id', type: 'varchar', length: '255', isNullable: true },
+        { name: 'temperature', type: 'decimal', precision: 5, scale: 2, isNullable: true },
+        { name: 'notes', type: 'text', isNullable: true },
+        { name: 'status', type: 'varchar', default: "'completed'" },
+        { name: 'type', type: 'varchar', length: '50', isNullable: true },
+        { name: 'visited_at', type: 'timestamptz', isNullable: false },
         { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
         { name: 'updated_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
         { name: 'deleted_at', type: 'timestamp', isNullable: true },
@@ -123,8 +92,49 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     }), true);
 
     await queryRunner.createForeignKey('visits', new TableForeignKey({ columnNames: ['tenant_id'], referencedTableName: 'tenants', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
-    await queryRunner.createForeignKey('visits', new TableForeignKey({ columnNames: ['user_id'], referencedTableName: 'users', referencedColumnNames: ['id'], onDelete: 'RESTRICT' }));
-    await queryRunner.createForeignKey('visits', new TableForeignKey({ columnNames: ['machine_id'], referencedTableName: 'machines', referencedColumnNames: ['id'], onDelete: 'RESTRICT' }));
+    await queryRunner.createForeignKey('visits', new TableForeignKey({ columnNames: ['technician_id'], referencedTableName: 'users', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
+
+    // --- SYNC_QUEUE ---
+    await queryRunner.createTable(new Table({
+      name: 'sync_queue',
+      columns: [
+        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
+        { name: 'tenant_id', type: 'uuid', isNullable: false },
+        { name: 'user_id', type: 'uuid', isNullable: false },
+        { name: 'operation_type', type: 'varchar', length: '50', isNullable: false },
+        { name: 'status', type: 'varchar', length: '50', default: "'PENDIENTE'" },
+        { name: 'payload', type: 'json', isNullable: false },
+        { name: 'retry_count', type: 'int', default: 0 },
+        { name: 'max_retries', type: 'int', default: 3 },
+        { name: 'error_message', type: 'text', isNullable: true },
+        { name: 'error_stack', type: 'text', isNullable: true },
+        { name: 'next_retry_at', type: 'timestamp', isNullable: true },
+        { name: 'synced_at', type: 'timestamp', isNullable: true },
+        { name: 'entity_id', type: 'uuid', isNullable: true },
+        { name: 'entity_type', type: 'varchar', length: '50', isNullable: true },
+        { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+        { name: 'updated_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+        { name: 'deleted_at', type: 'timestamp', isNullable: true },
+      ],
+    }), true);
+
+    // --- SECTORS ---
+    await queryRunner.createTable(new Table({
+      name: 'sectors',
+      columns: [
+        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
+        { name: 'tenant_id', type: 'uuid', isNullable: false },
+        { name: 'name', type: 'varchar', isNullable: false },
+        { name: 'description', type: 'varchar', isNullable: true },
+        { name: 'address', type: 'varchar', isNullable: true },
+        { name: 'location_lat', type: 'decimal', precision: 10, scale: 8, isNullable: true },
+        { name: 'location_lng', type: 'decimal', precision: 11, scale: 8, isNullable: true },
+        { name: 'is_active', type: 'boolean', default: true },
+        { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+        { name: 'updated_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
+        { name: 'deleted_at', type: 'timestamp', isNullable: true },
+      ],
+    }), true);
 
     // --- WORK_ORDERS ---
     await queryRunner.createTable(new Table({
@@ -135,10 +145,10 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
         { name: 'created_by_id', type: 'uuid', isNullable: false },
         { name: 'assigned_to_id', type: 'uuid', isNullable: true },
         { name: 'machine_id', type: 'uuid', isNullable: true },
-        { name: 'title', type: 'varchar', length: '255', isNullable: false },
+        { name: 'title', type: 'varchar', isNullable: false },
         { name: 'description', type: 'text', isNullable: true },
-        { name: 'status', type: 'varchar', length: '50', default: "'pending'", isNullable: false },
-        { name: 'priority', type: 'varchar', length: '50', default: "'medium'", isNullable: false },
+        { name: 'status', type: 'varchar', default: "'pending'" },
+        { name: 'priority', type: 'varchar', default: "'medium'" },
         { name: 'due_date', type: 'timestamp', isNullable: true },
         { name: 'completed_at', type: 'timestamp', isNullable: true },
         { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
@@ -147,22 +157,20 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
       ],
     }), true);
 
-    await queryRunner.createForeignKey('work_orders', new TableForeignKey({ columnNames: ['tenant_id'], referencedTableName: 'tenants', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
-    await queryRunner.createForeignKey('work_orders', new TableForeignKey({ columnNames: ['created_by_id'], referencedTableName: 'users', referencedColumnNames: ['id'], onDelete: 'RESTRICT' }));
-    await queryRunner.createForeignKey('work_orders', new TableForeignKey({ columnNames: ['assigned_to_id'], referencedTableName: 'users', referencedColumnNames: ['id'], onDelete: 'SET NULL' }));
-    await queryRunner.createForeignKey('work_orders', new TableForeignKey({ columnNames: ['machine_id'], referencedTableName: 'machines', referencedColumnNames: ['id'], onDelete: 'SET NULL' }));
-
-    // --- SECTORS ---
+    // --- NFC_TAGS ---
     await queryRunner.createTable(new Table({
-      name: 'sectors',
+      name: 'nfc_tags',
       columns: [
         { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
         { name: 'tenant_id', type: 'uuid', isNullable: false },
-        { name: 'name', type: 'varchar', length: '100', isNullable: false },
-        { name: 'description', type: 'varchar', length: '200', isNullable: true },
-        { name: 'address', type: 'varchar', length: '255', isNullable: true },
-        { name: 'location_lat', type: 'decimal', precision: 10, scale: 8, isNullable: true },
-        { name: 'location_lng', type: 'decimal', precision: 11, scale: 8, isNullable: true },
+        { name: 'machine_id', type: 'uuid', isNullable: false },
+        { name: 'uid', type: 'varchar', length: '14', isUnique: true },
+        { name: 'tag_model', type: 'varchar', default: "'NTAG-215'" },
+        { name: 'hardware_model', type: 'varchar', default: "'NTAG215'" },
+        { name: 'machine_serial_id', type: 'varchar', isNullable: false },
+        { name: 'tenant_id_obfuscated', type: 'varchar', isNullable: false },
+        { name: 'integrity_checksum', type: 'varchar', isNullable: false },
+        { name: 'is_locked', type: 'boolean', default: false },
         { name: 'is_active', type: 'boolean', default: true },
         { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
         { name: 'updated_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
@@ -170,28 +178,7 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
       ],
     }), true);
 
-    await queryRunner.createForeignKey('sectors', new TableForeignKey({ columnNames: ['tenant_id'], referencedTableName: 'tenants', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
-
-    // --- SYNC_QUEUE ---
-    await queryRunner.createTable(new Table({
-      name: 'sync_queue',
-      columns: [
-        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
-        { name: 'tenant_id', type: 'uuid', isNullable: false },
-        { name: 'user_id', type: 'uuid', isNullable: false },
-        { name: 'operation_type', type: 'varchar', length: '50', isNullable: false },
-        { name: 'status', type: 'varchar', length: '50', default: "'PENDIENTE'", isNullable: false },
-        { name: 'entity_type', type: 'varchar', length: '50', isNullable: true },
-        { name: 'entity_id', type: 'uuid', isNullable: true },
-        { name: 'payload', type: 'json', isNullable: false },
-        { name: 'created_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
-        { name: 'updated_at', type: 'timestamp', default: 'CURRENT_TIMESTAMP' },
-      ],
-    }), true);
-
-    await queryRunner.createForeignKey('sync_queue', new TableForeignKey({ columnNames: ['tenant_id'], referencedTableName: 'tenants', referencedColumnNames: ['id'], onDelete: 'CASCADE' }));
-
-    // --- TRIGGERS & FUNCTIONS (Tenant Name Sync) ---
+    // --- TRIGGERS ---
     await queryRunner.query(`
       CREATE OR REPLACE FUNCTION sync_user_tenant_name()
       RETURNS TRIGGER AS $$
@@ -210,12 +197,14 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     `);
 
     await queryRunner.query(`
+      DROP TRIGGER IF EXISTS trg_sync_user_tenant_name ON users;
       CREATE TRIGGER trg_sync_user_tenant_name
       BEFORE INSERT OR UPDATE OF tenant_id ON users
       FOR EACH ROW EXECUTE FUNCTION sync_user_tenant_name();
     `);
 
     await queryRunner.query(`
+      DROP TRIGGER IF EXISTS trg_sync_tenant_name_to_users ON tenants;
       CREATE TRIGGER trg_sync_tenant_name_to_users
       AFTER UPDATE OF name ON tenants
       FOR EACH ROW EXECUTE FUNCTION sync_user_tenant_name();
@@ -223,6 +212,6 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
-    // No es necesario implementar down para un squash inicial que se sincroniza manualmente
+    // No es necesario para squash inicial
   }
 }
