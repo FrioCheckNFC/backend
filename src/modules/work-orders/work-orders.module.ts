@@ -1,4 +1,4 @@
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { WorkOrder } from './entities/work-order.entity';
 import { WorkOrdersService } from './work-orders.service';
@@ -8,7 +8,7 @@ import { NfcTagsModule } from '../nfc-tags/nfc-tags.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([WorkOrder]),
-    forwardRef(() => NfcTagsModule),
+    NfcTagsModule,
   ],
   controllers: [WorkOrdersController],
   providers: [WorkOrdersService],
