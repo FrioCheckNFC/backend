@@ -61,11 +61,7 @@ export class LoginUseCase {
       throw new InvalidCredentialsError('Email, RUT o contrasena incorrectos');
     }
 
-    const userRolesResult = await this.userReader.getUserRoles(user.id);
-    const role =
-      userRolesResult && userRolesResult.length > 0
-        ? userRolesResult
-        : user.role || ['TECHNICIAN'];
+    const role = user.role || ['TECHNICIAN'];
 
     const accessToken = this.tokenSigner.sign({
       sub: user.id,
