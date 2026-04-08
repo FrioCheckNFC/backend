@@ -1,18 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, forwardRef, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WorkOrder } from './entities/work-order.entity';
 import { CreateWorkOrderDto, UpdateWorkOrderDto } from './dto/work-order.dto';
-
-import { NfcTag } from '../nfc-tags/entities/nfc-tag.entity';
+import { NfcTagsService } from '../nfc-tags/nfc-tags.service';
 
 @Injectable()
 export class WorkOrdersService {
   constructor(
     @InjectRepository(WorkOrder)
     private readonly repo: Repository<WorkOrder>,
-    @InjectRepository(NfcTag)
-    private readonly nfcTagsRepo: Repository<NfcTag>,
+    @Inject(forwardRef(() => NfcTagsService))
+    private readonly nfcTagsService: NfcTagsService,
   ) {}
 
   async create(dto: CreateWorkOrderDto, userId: string, tenantId: string): Promise<WorkOrder> {
@@ -68,21 +67,24 @@ export class WorkOrdersService {
       throw new BadRequestException('Esta orden de trabajo no tiene una máquina asignada para validar NFC');
     }
 
-    // Buscar el tag registrado para esta máquina
-    const machineTag = await this.nfcTagsRepo.findOne({
-      where: { machine_id: workOrder.machine.id, tenant_id: tenantId },
-    });
+    try {
+      // Usar el servicio de NFC en lugar del repositorio directamente
+      const machineTag = await this.nfcTagsService.findByMachineId(workOrder.machine.id, tenantId);
+      const nfcMatches = machineTag && machineTag.uid === actualNfcUid;
 
-    const nfcMatches = machineTag && machineTag.uid === actualNfcUid;
-
-    if (!nfcMatches) {
-      // Registrar que falló
-      workOrder.status = 'rejected';
-      await this.repo.save(workOrder);
-      throw new BadRequestException('Validación NFC fallida: el UID no coincide con la máquina. Orden bloqueada/rechazada.');
+      if (!nfcMatches) {
+        workOrder.status = 'rejected';
+        await this.repo.save(workOrder);
+        throw new BadRequestException('Validación NFC fallida: el UID no coincide con la máquina.');
+      }
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw new BadRequestException('Esta máquina no tiene un tag NFC registrado en el sistema.');
+      }
+      throw error;
     }
 
-    // Valiación exitosa
+    // Validación exitosa
     workOrder.status = 'in_progress';
     return this.repo.save(workOrder);
   }
