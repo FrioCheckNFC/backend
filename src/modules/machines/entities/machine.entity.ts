@@ -1,8 +1,3 @@
-// machine.entity.ts
-// Tabla "machines": equipos de refrigeración que pertenecen a un tenant.
-// Ejemplo: una cámara frigorífica, un refrigerador industrial, etc.
-// Cada máquina tiene un tag NFC físico para que el técnico lo escanee en terreno.
-
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -27,11 +22,11 @@ export class Machine {
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
+  @Column({ name: 'assigned_user_id', type: 'uuid', nullable: true })
+  assignedUserId?: string;
+
   @Column({ name: 'location_name', length: 255, nullable: true })
   name: string;
-
-  @Column({ length: 100 })
-  type: string;
 
   @Column({ length: 255, nullable: true })
   brand?: string;
@@ -42,32 +37,15 @@ export class Machine {
   @Column({ name: 'serial_number', length: 255, nullable: true })
   serialNumber?: string;
 
+  @Column({ length: 50, default: 'OPERATIVE' })
+  status?: string;
+
+  // Se mantienen estas columnas porque SÍ existen en la DB real:
   @Column({ name: 'nfc_tag_id', length: 255, nullable: true, unique: true })
   nfcTagId?: string;
 
   @Column({ name: 'nfc_code', length: 255, nullable: true })
   nfcCode?: string;
-
-  @Column({ name: 'client_name', length: 255, nullable: true })
-  clientName?: string;
-
-  @Column({ name: 'client_id', type: 'uuid', nullable: true })
-  clientId?: string;
-
-  @Column({ name: 'client_address', length: 255, nullable: true })
-  clientAddress?: string;
-
-  @Column({ name: 'client_phone', length: 50, nullable: true })
-  clientPhone?: string;
-
-  @Column({ name: 'client_rut', length: 20, nullable: true })
-  clientRut?: string;
-
-  @Column({ length: 50, default: 'OPERATIVE' })
-  status?: string;
-
-  @Column({ nullable: true })
-  location?: string;
 
   @Column({ name: 'location_lat', type: 'float', nullable: true })
   latitude?: number;

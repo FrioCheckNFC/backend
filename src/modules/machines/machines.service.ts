@@ -149,7 +149,7 @@ export class MachinesService {
         serialNumber: machine.serialNumber,
         model: machine.model,
         location: {
-          name: machine.location,
+          name: machine.name || '',
           latitude: machine.latitude,
           longitude: machine.longitude,
         },
@@ -273,23 +273,16 @@ export class MachinesService {
       machine: {
         id: machine.id,
         name: machine.name,
-        type: machine.type,
         brand: machine.brand,
         model: machine.model,
         serialNumber: machine.serialNumber,
         nfcId: machine.nfcTagId,
         nfcCode: machine.nfcCode,
-        client: {
-          id: machine.clientId,
-          name: machine.clientName,
-          address: machine.clientAddress,
-          phone: machine.clientPhone,
-          rut: machine.clientRut,
-        },
+        client: null,
         status: machineStatus,
-        location: machine.location
+        location: machine.latitude && machine.longitude
           ? {
-              address: machine.location,
+              address: machine.name || '',
               latitude: machine.latitude,
               longitude: machine.longitude,
             }
@@ -299,7 +292,7 @@ export class MachinesService {
       lastControl,
       visits: recentVisits,
       allowedActions,
-      clientStatus: isVendor ? this.getClientStatus(machine.clientId) : null,
+      clientStatus: null,
       validation: {
         gpsValid,
         gpsDistanceMeters: gpsDistanceMeters
