@@ -57,9 +57,9 @@ async function bootstrap() {
   );
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('FrioCheck API')
+    .setTitle('FrioCheck API (v1.2 - Deploy Fix)')
     .setDescription('Documentación oficial para los equipos de Móvil y Web')
-    .setVersion('1.0')
+    .setVersion('1.2')
     .addBearerAuth()
     .build();
 

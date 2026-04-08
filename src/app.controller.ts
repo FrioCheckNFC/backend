@@ -14,6 +14,7 @@ export class AppController {
   healthCheck() {
     return {
       status: 'ok',
+      version: '1.2.1-deploy-fix',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || 'development',
