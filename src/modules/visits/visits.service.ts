@@ -4,7 +4,11 @@
 // El admin puede listar todas las visitas de su tenant.
 // El tecnico solo ve sus propias visitas.
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Visit } from './entities/visit.entity';
@@ -23,7 +27,7 @@ export class VisitsService {
   async findAll(tenantId: string): Promise<Visit[]> {
     return this.visitsRepo.find({
       where: { tenantId },
-      relations: ['technician', 'asset'],
+      relations: ['technician', 'machine'],
       order: { visitedAt: 'DESC' },
     });
   }
@@ -35,7 +39,7 @@ export class VisitsService {
   ): Promise<Visit[]> {
     return this.visitsRepo.find({
       where: { technicianId, tenantId },
-      relations: ['asset'],
+      relations: ['machine'],
       order: { visitedAt: 'DESC' },
     });
   }
@@ -44,7 +48,7 @@ export class VisitsService {
   async findOne(id: string, tenantId: string): Promise<Visit> {
     const visit = await this.visitsRepo.findOne({
       where: { id, tenantId },
-      relations: ['technician', 'asset'],
+      relations: ['technician', 'machine'],
     });
     if (!visit) {
       throw new NotFoundException('Visita no encontrada');
@@ -98,7 +102,11 @@ export class VisitsService {
   }
 
   // Check-In (Abre visita)
-  async checkIn(dto: VisitActionDto, userId: string, tenantId: string): Promise<Visit> {
+  async checkIn(
+    dto: VisitActionDto,
+    userId: string,
+    tenantId: string,
+  ): Promise<Visit> {
     const openVisit = await this.visitsRepo.findOne({
       where: {
         technicianId: userId,
@@ -108,7 +116,9 @@ export class VisitsService {
     });
 
     if (openVisit) {
-      throw new BadRequestException('Ya tienes una visita abierta para esta máquina');
+      throw new BadRequestException(
+        'Ya tienes una visita abierta para esta máquina',
+      );
     }
 
     const visit = this.visitsRepo.create({
@@ -126,7 +136,12 @@ export class VisitsService {
   }
 
   // Check-Out (Cierra visita)
-  async checkOut(visitId: string, dto: Omit<VisitActionDto, 'machineId'>, userId: string, tenantId: string): Promise<Visit> {
+  async checkOut(
+    visitId: string,
+    dto: Omit<VisitActionDto, 'machineId'>,
+    userId: string,
+    tenantId: string,
+  ): Promise<Visit> {
     const visit = await this.visitsRepo.findOne({
       where: { id: visitId, status: 'pending', tenantId },
     });
@@ -136,7 +151,9 @@ export class VisitsService {
     }
 
     if (visit.nfcTagId !== dto.nfcUid) {
-      throw new BadRequestException('Validación NFC fallida: el tag no coincide con el del Check-In. Posible fraude.');
+      throw new BadRequestException(
+        'Validación NFC fallida: el tag no coincide con el del Check-In. Posible fraude.',
+      );
     }
 
     visit.status = 'completed';

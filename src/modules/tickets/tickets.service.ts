@@ -21,7 +21,7 @@ export class TicketsService {
   async findAll(tenantId: string): Promise<Ticket[]> {
     return this.ticketsRepo.find({
       where: { tenantId },
-      relations: ['asset', 'createdBy', 'assignedTo'],
+      relations: ['machine', 'createdBy', 'assignedTo'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -33,7 +33,7 @@ export class TicketsService {
   ): Promise<Ticket[]> {
     return this.ticketsRepo.find({
       where: { assignedToId, tenantId },
-      relations: ['asset', 'createdBy'],
+      relations: ['machine', 'createdBy'],
       order: { createdAt: 'DESC' },
     });
   }
@@ -42,7 +42,7 @@ export class TicketsService {
   async findOne(id: string, tenantId: string): Promise<Ticket> {
     const ticket = await this.ticketsRepo.findOne({
       where: { id, tenantId },
-      relations: ['asset', 'createdBy', 'assignedTo'],
+      relations: ['machine', 'createdBy', 'assignedTo'],
     });
     if (!ticket) {
       throw new NotFoundException('Ticket no encontrado');
