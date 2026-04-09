@@ -4,13 +4,13 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
   name = 'InitialSquashedSchema1785000000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    await queryRunner.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+    // Azure Postgres 17 uses built-in gen_random_uuid() instead of uuid-ossp extension
 
     // --- TENANTS ---
     await queryRunner.createTable(new Table({
       name: 'tenants',
       columns: [
-        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
+        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'gen_random_uuid()' },
         { name: 'name', type: 'varchar', length: '255', isNullable: false },
         { name: 'slug', type: 'varchar', length: '255', isNullable: false, isUnique: true },
         { name: 'description', type: 'text', isNullable: true },
@@ -26,7 +26,7 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     await queryRunner.createTable(new Table({
       name: 'users',
       columns: [
-        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
+        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'gen_random_uuid()' },
         { name: 'tenant_id', type: 'uuid', isNullable: true },
         { name: 'email', type: 'varchar', length: '255', isNullable: false, isUnique: true },
         { name: 'rut', type: 'varchar', length: '12', isNullable: true, isUnique: true },
@@ -50,7 +50,7 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     await queryRunner.createTable(new Table({
       name: 'machines',
       columns: [
-        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
+        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'gen_random_uuid()' },
         { name: 'tenant_id', type: 'uuid', isNullable: false },
         { name: 'assigned_user_id', type: 'uuid', isNullable: true },
         { name: 'serial_number', type: 'varchar', length: '255', isNullable: true, isUnique: true },
@@ -71,7 +71,7 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     await queryRunner.createTable(new Table({
       name: 'visits',
       columns: [
-        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
+        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'gen_random_uuid()' },
         { name: 'tenant_id', type: 'uuid', isNullable: false },
         { name: 'technician_id', type: 'uuid', isNullable: false },
         { name: 'machine_id', type: 'uuid', isNullable: false },
@@ -93,7 +93,7 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     await queryRunner.createTable(new Table({
       name: 'sectors',
       columns: [
-        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
+        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'gen_random_uuid()' },
         { name: 'tenant_id', type: 'uuid', isNullable: false },
         { name: 'name', type: 'varchar', isNullable: false },
         { name: 'description', type: 'varchar', isNullable: true },
@@ -111,7 +111,7 @@ export class InitialSquashedSchema1785000000000 implements MigrationInterface {
     await queryRunner.createTable(new Table({
       name: 'nfc_tags',
       columns: [
-        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'uuid_generate_v4()' },
+        { name: 'id', type: 'uuid', isPrimary: true, generationStrategy: 'uuid', default: 'gen_random_uuid()' },
         { name: 'tenant_id', type: 'uuid', isNullable: false },
         { name: 'machine_id', type: 'uuid', isNullable: false },
         { name: 'uid', type: 'varchar', length: '50', isUnique: true },

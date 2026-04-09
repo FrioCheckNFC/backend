@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import {
   TokenPayload,
   TokenSignerPort,
-} from '../../../application/auth/ports/token-signer.port';
+} from '../ports/token-signer.port';
 
 @Injectable()
 export class JwtTokenSignerAdapter implements TokenSignerPort {

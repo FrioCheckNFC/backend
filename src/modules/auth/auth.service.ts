@@ -17,9 +17,9 @@ import {
   InvalidCredentialsError,
   TenantNotFoundError,
   LoginUseCase,
-} from '../../application/auth/use-cases/login.use-case';
-import { ForgotPasswordUseCase } from '../../application/auth/use-cases/forgot-password.use-case';
-import { ResetPasswordUseCase } from '../../application/auth/use-cases/reset-password.use-case';
+} from './use-cases/login.use-case';
+import { ForgotPasswordUseCase } from './use-cases/forgot-password.use-case';
+import { ResetPasswordUseCase } from './use-cases/reset-password.use-case';
 import { LOGIN_USE_CASE } from './tokens';
 
 @Injectable()

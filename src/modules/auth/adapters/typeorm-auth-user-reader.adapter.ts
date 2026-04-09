@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import {
   AuthUserReaderPort,
   AuthUserRecord,
-} from '../../../application/auth/ports/auth-user-reader.port';
+} from '../ports/auth-user-reader.port';
 import { User } from '../../users/entities/user.entity';
 
 @Injectable()
