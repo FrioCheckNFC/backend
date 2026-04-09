@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, ILike } from 'typeorm';
 import {
   AuthUserReaderPort,
   AuthUserRecord,
@@ -16,7 +16,7 @@ export class TypeormAuthUserReaderAdapter implements AuthUserReaderPort {
 
   async findByEmail(emailOrRut: string): Promise<AuthUserRecord | null> {
     const user = await this.usersRepo.findOne({
-      where: [{ email: emailOrRut }, { rut: emailOrRut }],
+      where: [{ email: ILike(emailOrRut) }, { rut: ILike(emailOrRut) }],
     });
     if (!user) {
       return null;
