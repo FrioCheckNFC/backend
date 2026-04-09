@@ -1,6 +1,6 @@
 // DTO para registrar un usuario nuevo.
-// FIX #2: eliminado el campo 'role/roles' — /auth/register es público y
-// nunca debe permitir elegir rol. El default siempre es TECHNICIAN.
+// para registrar un usuario nuevo.
+// Se permite 'role' pero se filtra en el service por seguridad.
 // Para crear ADMINs, un admin debe usar POST /api/v1/users (protegido con JWT+ADMIN).
 
 import { ApiProperty } from '@nestjs/swagger';
@@ -10,6 +10,7 @@ import {
   IsEmail,
   IsUUID,
   IsOptional,
+  IsArray,
   MinLength,
 } from 'class-validator';
 
@@ -30,6 +31,16 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   rut?: string;
+
+  @ApiProperty({
+    example: ['RETAILER'],
+    description: 'Roles del usuario (Solo operativos: RETAILER, VENDOR, TECHNICIAN, DRIVER)',
+    required: false,
+    type: [String],
+  })
+  @IsOptional()
+  @IsArray()
+  role?: string[];
 
   @ApiProperty({ example: 'miClave123', description: 'Contrasena (min 8 caracteres)' })
   @IsNotEmpty({ message: 'La contrasena es obligatoria' })

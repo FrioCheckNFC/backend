@@ -56,9 +56,18 @@ export class AuthService {
     lastName: string;
     tenantId: string;
     rut?: string;
-    // FIX #2: roles NO se acepta en el registro público. Siempre se asigna TECHNICIAN.
-    // Para crear ADMINs usar POST /api/v1/users (requiere JWT + rol ADMIN)
+    role?: string[];
   }) {
+    // Seguridad: Filtrar roles prohibidos en registro público (ADMIN, SUPPORT)
+    const allowedRoles = ['TECHNICIAN', 'DRIVER', 'VENDOR', 'RETAILER'];
+    const requestedRoles = data.role || ['TECHNICIAN'];
+    
+    // Solo dejamos los roles que estén en la lista de permitidos
+    const filteredRoles = requestedRoles.filter(r => allowedRoles.includes(r.toUpperCase()));
+    
+    // Si no queda ningún rol válido después del filtro, asignamos TECHNICIAN por defecto
+    const finalRoles = filteredRoles.length > 0 ? filteredRoles : ['TECHNICIAN'];
+
     const exists = await this.usersRepo.findOne({
       where: { email: data.email },
     });
@@ -75,7 +84,7 @@ export class AuthService {
       firstName: data.firstName,
       lastName: data.lastName,
       tenantId: data.tenantId,
-      role: ['TECHNICIAN'], // FIX #2: siempre TECHNICIAN en registro público
+      role: finalRoles,
     });
 
     try {
