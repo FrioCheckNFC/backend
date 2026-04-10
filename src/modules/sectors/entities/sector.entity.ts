@@ -17,6 +17,12 @@ export class Sector {
   name: string;
 
   @Column({ type: 'varchar', nullable: true })
+  comuna: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  city: string;
+
+  @Column({ type: 'varchar', nullable: true })
   description: string;
 
   @Column({ type: 'varchar', nullable: true })
