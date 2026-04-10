@@ -1,0 +1,53 @@
+# Arquitectura Backend FrioCheck — "Modular-Hexagonal Lite"
+# Actualizado: Abril 2026
+
+## ¿Qué es esta nueva arquitectura?
+
+Hemos migrado el backend de una estructura monolítica simple a una arquitectura **Modular-Hexagonal Lite (Puertos y Adaptadores)**. 
+
+### Componentes Clave:
+1. **Domain Entities**: Representan los datos y reglas de negocio puras.
+2. **Ports (Puertos)**: Interfaces que definen *qué* debe hacer la persistencia (ej. `InventoryRepositoryPort`). El dominio no sabe cómo se guardan los datos, solo conoce la interfaz.
+3. **Adapters (Adaptadores)**: Implementaciones concretas de los puertos (ej. `TypeOrmInventoryRepositoryAdapter`). Aquí es donde vive la lógica de TypeORM/PostgreSQL.
+4. **Services (Dominio/Aplicación)**: Contienen la lógica de negocio y usan los puertos para interactuar con los datos. Ya no dependen de `Repository<Entity>` de TypeORM directamente, sino de los `Ports`.
+5. **Controllers (Interfaces)**: Exponen la funcionalidad vía REST.
+
+---
+
+## ¿Por qué es mejor que la arquitectura anterior?
+
+### 1. Desacoplamiento (Decoupling)
+Antes, tus servicios estaban "casados" con TypeORM. Si querías cambiar algo de la base de datos o probar un servicio sin tocar la DB, era muy difícil. Ahora, el servicio solo conoce una "interfaz" (el Puerto). Podríamos cambiar TypeORM por Prisma, Mongoose o incluso una API externa sin tocar ni una línea de código de la lógica de negocio.
+
+### 2. Mayor Testabilidad
+Ahora es extremadamente fácil hacer pruebas unitarias. Podemos crear un "MockRepositoryAdapter" que implemente el puerto y devuelva datos fijos en memoria, permitiendo probar toda la lógica del servicio en milisegundos sin necesidad de levantar una base de datos real.
+
+### 3. Organización y Escalabilidad
+Cada módulo (Inventario, Ventas, etc.) ahora tiene una estructura interna estandarizada y predecible:
+- `/controllers`: Lógica de entrada/salida (HTTP).
+- `/services`: El "cerebro" (Lógica de negocio).
+- `/repositories`: El "músculo" (Acceso a datos).
+- `/dto` & `/entities`: Definición de datos.
+
+Esto evita que los archivos crezcan demasiado y facilita que nuevos desarrolladores entiendan dónde está cada cosa.
+
+### 4. Mantenimiento Simplificado
+Si mañana decides que el `status` de un ítem de inventario se calcule diferente, solo tocas el `InventoryService`. Si decides que para listar las ventas necesitas una consulta SQL cruda ultra-optimizada, solo tocas el `TypeOrmSalesRepositoryAdapter`. Las responsabilidades están claramente separadas (Separation of Concerns).
+
+### 5. Multi-tenancy Robusto
+Hemos estandarizado que todos los puertos requieran un `tenantId`. Esto asegura que la lógica de aislamiento de datos esté presente desde el nivel del repositorio hasta el controlador, evitando fugas de información entre clientes.
+
+---
+
+## Estructura de Carpetas (Ejemplo)
+
+src/modules/inventory/
+├── controllers/       # Controladores REST
+├── services/          # Lógica de Negocio (Usa Ports)
+├── repositories/      # Puertos (Interfaces) y Adaptadores (TypeORM)
+├── entities/          # Tablas de Base de Datos
+└── dto/               # Objetos de transferencia de datos
+
+---
+
+**Conclusión:** Esta arquitectura hace que FrioCheck pase de ser un proyecto "que funciona" a ser un sistema de nivel profesional, preparado para crecer, fácil de testear y resistente a cambios tecnológicos futuros.

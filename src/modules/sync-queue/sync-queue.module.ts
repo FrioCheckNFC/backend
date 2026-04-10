@@ -1,13 +1,20 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SyncQueue } from './entities/sync-queue.entity';
-import { SyncQueueService } from './sync-queue.service';
-import { SyncQueueController } from './sync-queue.controller';
+import { SyncQueueService } from './services/sync-queue.service';
+import { SyncQueueController } from './controllers/sync-queue.controller';
+import { TypeOrmSyncQueueRepositoryAdapter } from './repositories/typeorm-sync-queue.repository.adapter';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SyncQueue])],
-  providers: [SyncQueueService],
   controllers: [SyncQueueController],
-  exports: [SyncQueueService, TypeOrmModule],
+  providers: [
+    SyncQueueService,
+    {
+      provide: 'SYNC_QUEUE_REPOSITORY',
+      useClass: TypeOrmSyncQueueRepositoryAdapter,
+    },
+  ],
+  exports: [SyncQueueService],
 })
 export class SyncQueueModule {}

@@ -49,6 +49,15 @@ export class UpdateUserDto {
   lastName?: string;
 
   @ApiProperty({
+    example: '12.345.678-9',
+    description: 'Nuevo RUT del usuario',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  rut?: string;
+
+  @ApiProperty({
     example: '+56987654321',
     description: 'Nuevo telefono',
     required: false,

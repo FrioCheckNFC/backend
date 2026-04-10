@@ -50,6 +50,15 @@ export class CreateUserDto {
   lastName: string;
 
   @ApiProperty({
+    example: '12.345.678-9',
+    description: 'RUT del usuario (obligatorio)',
+    required: true,
+  })
+  @IsNotEmpty({ message: 'El RUT es obligatorio' })
+  @IsString()
+  rut: string;
+
+  @ApiProperty({
     example: '+56912345678',
     description: 'Telefono (opcional)',
     required: false,

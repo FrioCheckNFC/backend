@@ -67,6 +67,7 @@ async function seed() {
         firstName: 'Carlos',
         lastName: 'Administrador',
         role: 'ADMIN',
+        rut: '12.345.678-9',
       },
       {
         email: 'tecnico@friocheck.com',
@@ -74,6 +75,7 @@ async function seed() {
         firstName: 'Juan',
         lastName: 'Técnico',
         role: 'TECHNICIAN',
+        rut: '11.111.111-1',
       },
       {
         email: 'conductor@friocheck.com',
@@ -81,6 +83,7 @@ async function seed() {
         firstName: 'Pedro',
         lastName: 'Conductor',
         role: 'DRIVER',
+        rut: '22.222.222-2',
       },
       {
         email: 'vendedor@friocheck.com',
@@ -88,6 +91,7 @@ async function seed() {
         firstName: 'María',
         lastName: 'Vendedora',
         role: 'VENDOR',
+        rut: '33.333.333-3',
       },
       {
         email: 'soporte@friocheck.com',
@@ -95,6 +99,7 @@ async function seed() {
         firstName: 'Ana',
         lastName: 'Soporte',
         role: 'SUPPORT',
+        rut: '44.444.444-4',
       },
     ];
 
@@ -111,8 +116,8 @@ async function seed() {
 
       if (existing.length === 0) {
         const result = await AppDataSource.query(
-          `INSERT INTO users (tenant_id, email, password_hash, first_name, last_name, role, active) 
-           VALUES ($1, $2, $3, $4, $5, $6, true) 
+          `INSERT INTO users (tenant_id, email, password_hash, first_name, last_name, role, active, rut) 
+           VALUES ($1, $2, $3, $4, $5, $6, true, $7) 
            RETURNING id`,
           [
             tenantId,
@@ -121,15 +126,16 @@ async function seed() {
             u.firstName,
             u.lastName,
             roleArray,
+            u.rut,
           ],
         );
         userIds[u.role] = result[0].id;
         console.log(`   ${u.role} creado: ${u.email}`);
       } else {
-        // Actualizar password y role
+        // Actualizar password, role y rut
         await AppDataSource.query(
-          `UPDATE users SET password_hash = $1, role = $2 WHERE email = $3`,
-          [hashedPassword, roleArray, u.email],
+          `UPDATE users SET password_hash = $1, role = $2, rut = $3 WHERE email = $4`,
+          [hashedPassword, roleArray, u.rut, u.email],
         );
         userIds[u.role] = existing[0].id;
         console.log(`   ${u.role} actualizado: ${u.email}`);

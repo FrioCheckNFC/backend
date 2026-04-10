@@ -14,7 +14,7 @@ export class CreateSyncQueueDto {
   payload: Record<string, any>;
 }
 
-export class UpdateSyncQueueDto {
+export class UpdateSyncStatusDto {
   @IsOptional()
   @IsEnum(SyncStatus)
   status?: SyncStatus;

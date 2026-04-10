@@ -20,7 +20,7 @@ export interface LoginOutput {
   };
 }
 
-import { TenantsService } from '../../../modules/tenants/tenants.service';
+import { TenantsService } from '../../../modules/tenants/services/tenants.service';
 import { NotFoundException } from '@nestjs/common';
 
 export class LoginUseCase {

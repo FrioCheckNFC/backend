@@ -7,8 +7,11 @@ import {
   DeleteDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { Tenant } from '../../tenants/entities/tenant.entity';
+import { NfcTag } from '../../nfc-tags/entities/nfc-tag.entity';
+import { Store } from '../../stores/entities/store.entity';
 
 @Entity('machines')
 export class Machine {
@@ -22,8 +25,18 @@ export class Machine {
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
+  @OneToOne(() => NfcTag, (tag) => tag.machine)
+  nfcTag: NfcTag;
+
   @Column({ name: 'assigned_user_id', type: 'uuid', nullable: true })
   assignedUserId?: string;
+
+  @Column({ name: 'store_id', type: 'uuid', nullable: true })
+  storeId?: string;
+
+  @ManyToOne(() => Store, (store) => store.machines)
+  @JoinColumn({ name: 'store_id' })
+  store?: Store;
 
   @Column({ name: 'location_name', length: 255, nullable: true })
   name: string; 

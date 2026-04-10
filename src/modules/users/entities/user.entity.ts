@@ -25,8 +25,8 @@ export class User {
   @Column({ unique: true })
   email: string;
 
-  // RUT chileno con guion y dígito verificador (opcional, pero único si existe)
-  @Column({ unique: true, nullable: true })
+  // RUT chileno con guion y dígito verificador (único y obligatorio)
+  @Column({ unique: true, nullable: false })
   rut: string;
 
   // Hash bcrypt de la contrasena. Nunca se guarda en texto plano.

@@ -1,16 +1,20 @@
-// attachments.module.ts
-// Módulo de archivos/fotos de evidencia.
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Attachment } from './entities/attachment.entity';
-import { AttachmentsController } from './attachments.controller';
-import { AttachmentsService } from './attachments.service';
+import { AttachmentsService } from './services/attachments.service';
+import { AttachmentsController } from './controllers/attachments.controller';
+import { TypeOrmAttachmentRepositoryAdapter } from './repositories/typeorm-attachment.repository.adapter';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Attachment])],
   controllers: [AttachmentsController],
-  providers: [AttachmentsService],
+  providers: [
+    AttachmentsService,
+    {
+      provide: 'ATTACHMENT_REPOSITORY',
+      useClass: TypeOrmAttachmentRepositoryAdapter,
+    },
+  ],
   exports: [AttachmentsService],
 })
 export class AttachmentsModule {}

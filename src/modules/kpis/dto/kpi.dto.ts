@@ -34,10 +34,24 @@ export class UpdateKpiDto {
   name?: string;
 
   @IsOptional()
+  @IsString()
+  type?: string;
+
+  @IsOptional()
   @IsNumber()
   targetValue?: number;
 
   @IsOptional()
   @IsNumber()
   currentValue?: number;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  startDate?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  endDate?: Date;
 }

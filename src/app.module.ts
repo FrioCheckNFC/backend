@@ -20,6 +20,7 @@ import { KpisModule } from './modules/kpis/kpis.module';
 import { NfcTagsModule } from './modules/nfc-tags/nfc-tags.module';
 import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 import { SyncQueueModule } from './modules/sync-queue/sync-queue.module';
+import { StoresModule } from './modules/stores/stores.module';
 
 // EXPLICT ENTITY IMPORTS FOR AZURE STABILITY
 import { Attachment } from './modules/attachments/entities/attachment.entity';
@@ -37,6 +38,7 @@ import { Ticket } from './modules/tickets/entities/ticket.entity';
 import { User } from './modules/users/entities/user.entity';
 import { Visit } from './modules/visits/entities/visit.entity';
 import { WorkOrder } from './modules/work-orders/entities/work-order.entity';
+import { Store } from './modules/stores/entities/store.entity';
 
 import { APP_GUARD } from '@nestjs/core';
 import { ThrottlerGuard } from '@nestjs/throttler';
@@ -69,7 +71,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
           entities: [
             Attachment, PasswordReset, InventoryItem, Kpi, Machine, 
             Merma, NfcTag, Sale, Sector, SyncQueue, 
-            Tenant, Ticket, User, Visit, WorkOrder
+            Tenant, Ticket, User, Visit, WorkOrder, Store
           ],
           autoLoadEntities: false, 
           synchronize: false,
@@ -96,6 +98,7 @@ import { ThrottlerGuard } from '@nestjs/throttler';
     NfcTagsModule,
     WorkOrdersModule,
     SyncQueueModule,
+    StoresModule,
   ],
   controllers: [AppController],
   providers: [

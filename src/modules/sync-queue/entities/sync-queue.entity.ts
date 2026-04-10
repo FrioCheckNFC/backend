@@ -33,10 +33,10 @@ export class SyncQueue {
   id: string;
 
   @Column({ name: 'tenant_id', type: 'uuid' })
-  tenant_id: string;
+  tenantId: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
-  user_id: string;
+  userId: string;
 
   @ManyToOne(() => Tenant)
   @JoinColumn({ name: 'tenant_id' })
