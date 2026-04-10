@@ -24,6 +24,12 @@ export class TypeOrmSectorRepositoryAdapter implements SectorRepositoryPort {
     return this.repo.findOne({ where });
   }
 
+  async findByName(name: string, tenantId: string): Promise<Sector | null> {
+    return this.repo.findOne({
+      where: { name, tenantId },
+    });
+  }
+
   async create(sector: Partial<Sector>): Promise<Sector> {
     const newSector = this.repo.create(sector);
     return this.repo.save(newSector);

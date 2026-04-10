@@ -6,6 +6,14 @@ export class CreateSectorDto {
 
   @IsOptional()
   @IsString()
+  comuna?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
 
   @IsOptional()

@@ -5,9 +5,10 @@ import { StoresService } from './services/stores.service';
 import { StoresController } from './controllers/stores.controller';
 import { StoreRepositoryPort } from './repositories/store.repository.port';
 import { TypeOrmStoreRepositoryAdapter } from './repositories/typeorm-store.repository.adapter';
+import { SectorsModule } from '../sectors/sectors.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Store])],
+  imports: [TypeOrmModule.forFeature([Store]), SectorsModule],
   controllers: [StoresController],
   providers: [
     StoresService,
