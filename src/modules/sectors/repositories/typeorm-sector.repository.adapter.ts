@@ -14,7 +14,7 @@ export class TypeOrmSectorRepositoryAdapter implements SectorRepositoryPort {
   async findAll(tenantId: string): Promise<Sector[]> {
     return this.repo.find({
       where: { tenantId },
-      order: { name: 'ASC' },
+      order: { comuna: 'ASC' },
     });
   }
 
@@ -24,9 +24,13 @@ export class TypeOrmSectorRepositoryAdapter implements SectorRepositoryPort {
     return this.repo.findOne({ where });
   }
 
-  async findByName(name: string, tenantId: string): Promise<Sector | null> {
+  async findByGeography(
+    comuna: string,
+    city: string,
+    tenantId: string,
+  ): Promise<Sector | null> {
     return this.repo.findOne({
-      where: { name, tenantId },
+      where: { comuna, city, tenantId },
     });
   }
 

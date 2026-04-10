@@ -2,19 +2,10 @@ import { IsString, IsOptional, IsBoolean } from 'class-validator';
 
 export class CreateSectorDto {
   @IsString()
-  name: string;
+  comuna: string;
 
-  @IsOptional()
   @IsString()
-  comuna?: string;
-
-  @IsOptional()
-  @IsString()
-  city?: string;
-
-  @IsOptional()
-  @IsString()
-  description?: string;
+  city: string;
 
   @IsOptional()
   @IsString()
@@ -30,11 +21,11 @@ export class CreateSectorDto {
 export class UpdateSectorDto {
   @IsOptional()
   @IsString()
-  name?: string;
+  comuna?: string;
 
   @IsOptional()
   @IsString()
-  description?: string;
+  city?: string;
 
   @IsOptional()
   @IsString()

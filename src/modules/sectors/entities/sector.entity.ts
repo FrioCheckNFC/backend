@@ -13,17 +13,11 @@ export class Sector {
   @JoinColumn({ name: 'tenant_id' })
   tenant: Tenant;
 
-  @Column({ type: 'varchar' })
-  name: string;
-
   @Column({ type: 'varchar', nullable: true })
   comuna: string;
 
   @Column({ type: 'varchar', nullable: true })
   city: string;
-
-  @Column({ type: 'varchar', nullable: true })
-  description: string;
 
   @Column({ type: 'varchar', nullable: true })
   address: string;

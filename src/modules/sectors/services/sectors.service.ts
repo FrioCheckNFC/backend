@@ -19,16 +19,13 @@ export class SectorsService {
     city: string,
     tenantId: string,
   ): Promise<Sector> {
-    // Intentar buscar por nombre (que en este caso usaremos la comuna como nombre si es autogenerado)
-    let sector = await this.sectorRepository.findByName(comuna, tenantId);
+    let sector = await this.sectorRepository.findByGeography(comuna, city, tenantId);
 
     if (!sector) {
       sector = await this.create(
         {
-          name: comuna,
           comuna,
           city,
-          description: `Sector autogenerado para ${comuna}, ${city}`,
         },
         tenantId,
       );
