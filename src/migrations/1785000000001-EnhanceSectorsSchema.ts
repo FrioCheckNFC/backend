@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, TableColumn } from "typeorm";
 
-export class EnhanceSectorsSchema1775848768822 implements MigrationInterface {
+export class EnhanceSectorsSchema1785000000001 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         // Añadir nuevas columnas
