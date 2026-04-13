@@ -20,11 +20,15 @@ export class TypeOrmMachineRepositoryAdapter implements MachineRepositoryPort {
   }
 
   async findOne(identifier: string, tenantId: string): Promise<Machine | null> {
-    const query = this.repo.createQueryBuilder('machine')
+    const query = this.repo
+      .createQueryBuilder('machine')
       .where('machine.tenant_id = :tenantId', { tenantId });
 
     if (this.isUUID(identifier)) {
-      query.andWhere('(machine.id = :identifier OR machine.serial_number = :identifier)', { identifier });
+      query.andWhere(
+        '(machine.id = :identifier::uuid OR machine.serial_number = :identifier)',
+        { identifier },
+      );
     } else {
       query.andWhere('machine.serial_number = :identifier', { identifier });
     }
@@ -33,7 +37,8 @@ export class TypeOrmMachineRepositoryAdapter implements MachineRepositoryPort {
   }
 
   private isUUID(str: string): boolean {
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const uuidRegex =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     return uuidRegex.test(str);
   }
 
@@ -50,8 +55,12 @@ export class TypeOrmMachineRepositoryAdapter implements MachineRepositoryPort {
     await this.repo.softRemove(machine);
   }
 
-  async getLastControlDetails(machineId: string, tenantId: string): Promise<any> {
-    const lastVisit = await this.repo.manager.getRepository(Visit)
+  async getLastControlDetails(
+    machineId: string,
+    tenantId: string,
+  ): Promise<any> {
+    const lastVisit = await this.repo.manager
+      .getRepository(Visit)
       .createQueryBuilder('v')
       .leftJoinAndSelect('v.technician', 'u')
       .where('v.machineId = :machineId', { machineId })
@@ -64,13 +73,19 @@ export class TypeOrmMachineRepositoryAdapter implements MachineRepositoryPort {
     return {
       date: lastVisit.visitedAt,
       status: lastVisit.status,
-      userName: `${lastVisit.technician?.firstName || ''} ${lastVisit.technician?.lastName || ''}`.trim(),
+      userName:
+        `${lastVisit.technician?.firstName || ''} ${lastVisit.technician?.lastName || ''}`.trim(),
       summary: lastVisit.notes,
     };
   }
 
-  async getRecentVisits(machineId: string, tenantId: string, limit: number): Promise<any[]> {
-    const visits = await this.repo.manager.getRepository(Visit)
+  async getRecentVisits(
+    machineId: string,
+    tenantId: string,
+    limit: number,
+  ): Promise<any[]> {
+    const visits = await this.repo.manager
+      .getRepository(Visit)
       .createQueryBuilder('v')
       .leftJoinAndSelect('v.technician', 'u')
       .where('v.machineId = :machineId', { machineId })
@@ -83,7 +98,8 @@ export class TypeOrmMachineRepositoryAdapter implements MachineRepositoryPort {
       id: v.id,
       date: v.visitedAt,
       status: v.status,
-      userName: `${v.technician?.firstName || ''} ${v.technician?.lastName || ''}`.trim(),
+      userName:
+        `${v.technician?.firstName || ''} ${v.technician?.lastName || ''}`.trim(),
       userRole: v.technician?.role ? v.technician.role[0] : null,
     }));
   }
