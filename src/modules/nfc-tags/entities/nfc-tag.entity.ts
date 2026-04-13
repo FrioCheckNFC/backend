@@ -45,9 +45,9 @@ export class NfcTag {
   @Column({ name: 'machine_serial_id', length: 255 })
   machineSerialId: string;
 
-  // TID (Tenant ID): Identificador ofuscado del cliente para evitar trazabilidad directa
-  @Column({ name: 'tenant_id_obfuscated', length: 255 })
-  tenantIdObfuscated: string;
+  // Nombre del tenant para fácil identificación
+  @Column({ name: 'tenant_name', length: 255, nullable: true })
+  tenantName: string;
 
   // CHK (Checksum): Hash corto para verificar integridad de datos y detectar alteraciones
   @Column({ name: 'integrity_checksum', length: 255 })

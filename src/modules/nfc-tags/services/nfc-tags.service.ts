@@ -1,5 +1,10 @@
 // services/nfc-tags.service.ts
-import { Injectable, NotFoundException, BadRequestException, Inject } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  Inject,
+} from '@nestjs/common';
 import { NfcTag } from '../entities/nfc-tag.entity';
 import { CreateNfcTagDto } from '../dto/nfc-tag.dto';
 import { NfcTagRepositoryPort } from '../repositories/nfc-tag.repository.port';
@@ -12,17 +17,25 @@ export class NfcTagsService {
   ) {}
 
   async create(createNfcTagDto: CreateNfcTagDto): Promise<NfcTag> {
-    const existingTag = await this.nfcTagRepository.findByUid(createNfcTagDto.uid);
+    const existingTag = await this.nfcTagRepository.findByUid(
+      createNfcTagDto.uid,
+    );
     if (existingTag) {
-      throw new BadRequestException('NFC tag with this UID already exists. Possible cloning detected.');
+      throw new BadRequestException(
+        'NFC tag with this UID already exists. Possible cloning detected.',
+      );
     }
 
     const nfcTagData = {
       uid: createNfcTagDto.uid,
       tagModel: createNfcTagDto.tagModel || 'NTAG-215',
-      machineSerialId: createNfcTagDto.machineSerialId || `SID-${createNfcTagDto.uid.substring(0, 8)}`,
-      tenantIdObfuscated: createNfcTagDto.tenantIdObfuscated || `TENANT-${createNfcTagDto.tenantId.substring(0, 8)}`,
-      integrityChecksum: createNfcTagDto.integrityChecksum || this.generateChecksum(createNfcTagDto.uid),
+      machineSerialId:
+        createNfcTagDto.machineSerialId ||
+        `SID-${createNfcTagDto.uid.substring(0, 8)}`,
+      tenantName: createNfcTagDto.tenantName || 'Tenant',
+      integrityChecksum:
+        createNfcTagDto.integrityChecksum ||
+        this.generateChecksum(createNfcTagDto.uid),
       tenant: { id: createNfcTagDto.tenantId } as any,
       machine: { id: createNfcTagDto.machineId } as any,
     };
@@ -34,7 +47,7 @@ export class NfcTagsService {
     let hash = 0;
     for (let i = 0; i < uid.length; i++) {
       const char = uid.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return Math.abs(hash).toString(16).substring(0, 16);
@@ -49,7 +62,10 @@ export class NfcTagsService {
   }
 
   async findByMachineId(machineId: string, tenantId?: string): Promise<NfcTag> {
-    const nfcTag = await this.nfcTagRepository.findByMachineId(machineId, tenantId);
+    const nfcTag = await this.nfcTagRepository.findByMachineId(
+      machineId,
+      tenantId,
+    );
     if (!nfcTag) {
       throw new NotFoundException(`NFC tag for machine ${machineId} not found`);
     }
@@ -72,7 +88,11 @@ export class NfcTagsService {
     return this.nfcTagRepository.save(nfcTag);
   }
 
-  async validateIntegrity(uid: string, checksum: string, tenantId?: string): Promise<boolean> {
+  async validateIntegrity(
+    uid: string,
+    checksum: string,
+    tenantId?: string,
+  ): Promise<boolean> {
     const nfcTag = await this.findByUid(uid, tenantId);
     return nfcTag.integrityChecksum === checksum;
   }

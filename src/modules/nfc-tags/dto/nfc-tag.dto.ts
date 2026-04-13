@@ -17,7 +17,7 @@ export class CreateNfcTagDto {
 
   @IsString()
   @IsOptional()
-  tenantIdObfuscated?: string;
+  tenantName?: string;
 
   @IsString()
   @IsOptional()
@@ -48,7 +48,7 @@ export class NfcTagResponseDto {
   machineSerialId: string;
 
   @IsString()
-  tenantIdObfuscated: string;
+  tenantName: string;
 
   @IsString()
   integrityChecksum: string;

@@ -29,10 +29,18 @@ export class MachinesService {
     return this.machinesRepo.findAll(tenantId);
   }
 
-  async findOne(id: string, tenantId: string): Promise<Machine> {
-    const machine = await this.machinesRepo.findOne(id, tenantId);
+  async findOne(identifier: string, tenantId: string): Promise<Machine> {
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        identifier,
+      );
+    const searchType = isUuid ? 'ID o número de serie' : 'número de serie';
+
+    const machine = await this.machinesRepo.findOne(identifier, tenantId);
     if (!machine) {
-      throw new NotFoundException('Máquina no encontrada');
+      throw new NotFoundException(
+        `Máquina no encontrada por ${searchType}: ${identifier}`,
+      );
     }
     return machine;
   }
@@ -42,16 +50,23 @@ export class MachinesService {
 
     const nfcTag = await this.nfcTagsRepo.findByUid(normalizedNfcId, tenantId);
     if (!nfcTag) {
-      throw new NotFoundException('No se encontró un tag NFC registrado con ese ID en esta empresa');
+      throw new NotFoundException(
+        'No se encontró un tag NFC registrado con ese ID en esta empresa',
+      );
     }
 
     if (!nfcTag.isActive) {
       throw new ForbiddenException('Este tag NFC está inactivo');
     }
 
-    const machine = await this.machinesRepo.findOne(nfcTag.machine_id, tenantId);
+    const machine = await this.machinesRepo.findOne(
+      nfcTag.machine_id,
+      tenantId,
+    );
     if (!machine) {
-      throw new NotFoundException('El tag NFC está registrado pero no está vinculado a una máquina');
+      throw new NotFoundException(
+        'El tag NFC está registrado pero no está vinculado a una máquina',
+      );
     }
 
     return machine;
@@ -61,20 +76,28 @@ export class MachinesService {
     if (dto.nfcTagId) {
       const exists = await this.nfcTagsRepo.findByUid(dto.nfcTagId, tenantId);
       if (exists) {
-        throw new BadRequestException('Este tag NFC ya está asignado a otra máquina');
+        throw new BadRequestException(
+          'Este tag NFC ya está asignado a otra máquina',
+        );
       }
     }
 
     return this.machinesRepo.create({ ...dto, tenantId });
   }
 
-  async update(id: string, dto: UpdateMachineDto, tenantId: string): Promise<Machine> {
+  async update(
+    id: string,
+    dto: UpdateMachineDto,
+    tenantId: string,
+  ): Promise<Machine> {
     const machine = await this.findOne(id, tenantId);
 
     if (dto.nfcTagId) {
       const nfcTag = await this.nfcTagsRepo.findByUid(dto.nfcTagId, tenantId);
       if (nfcTag && nfcTag.machine_id !== id) {
-        throw new BadRequestException('Ese tag NFC ya está asignado a otra máquina');
+        throw new BadRequestException(
+          'Ese tag NFC ya está asignado a otra máquina',
+        );
       }
     }
 
@@ -93,9 +116,14 @@ export class MachinesService {
       throw new NotFoundException(`No se encontró registro para este tag NFC`);
     }
 
-    const machine = await this.machinesRepo.findOne(nfcTag.machine_id, tenantId);
+    const machine = await this.machinesRepo.findOne(
+      nfcTag.machine_id,
+      tenantId,
+    );
     if (!machine) {
-      throw new NotFoundException(`No se encontró máquina vinculada a este tag`);
+      throw new NotFoundException(
+        `No se encontró máquina vinculada a este tag`,
+      );
     }
 
     let gpsDistanceMeters = 0;
@@ -130,7 +158,11 @@ export class MachinesService {
     };
   }
 
-  async nfcRead(dto: NfcReadDto, tenantId: string, userRoles?: string[]): Promise<any> {
+  async nfcRead(
+    dto: NfcReadDto,
+    tenantId: string,
+    userRoles?: string[],
+  ): Promise<any> {
     const normalizedNfcId = this.normalizeNfcId(dto.nfcId);
 
     const nfcTag = await this.nfcTagsRepo.findByUid(normalizedNfcId, tenantId);
@@ -150,23 +182,39 @@ export class MachinesService {
       });
     }
 
-    const machine = await this.machinesRepo.findOne(nfcTag.machine_id, tenantId);
+    const machine = await this.machinesRepo.findOne(
+      nfcTag.machine_id,
+      tenantId,
+    );
     if (!machine) {
       throw new NotFoundException({
         error: 'MACHINE_NOT_LINKED',
-        message: 'El tag NFC está registrado pero no está vinculado a una máquina',
+        message:
+          'El tag NFC está registrado pero no está vinculado a una máquina',
         nfcId: normalizedNfcId,
       });
     }
 
-    const lastControl = await this.machinesRepo.getLastControlDetails(machine.id, tenantId);
-    const recentVisits = await this.machinesRepo.getRecentVisits(machine.id, tenantId, 5);
+    const lastControl = await this.machinesRepo.getLastControlDetails(
+      machine.id,
+      tenantId,
+    );
+    const recentVisits = await this.machinesRepo.getRecentVisits(
+      machine.id,
+      tenantId,
+      5,
+    );
     const allowedActions = this.getAllowedActions(userRoles);
 
     let gpsDistanceMeters: number | null = null;
     let gpsValid = false;
 
-    if (machine.latitude && machine.longitude && dto.latitude && dto.longitude) {
+    if (
+      machine.latitude &&
+      machine.longitude &&
+      dto.latitude &&
+      dto.longitude
+    ) {
       const distance = this.calculateDistance(
         parseFloat(machine.latitude.toString()),
         parseFloat(machine.longitude.toString()),
@@ -177,7 +225,10 @@ export class MachinesService {
       gpsValid = distance <= MachinesService.GPS_MAX_DISTANCE_METERS;
     }
 
-    const machineStatus = this.normalizeStatus(machine.status, machine.isActive);
+    const machineStatus = this.normalizeStatus(
+      machine.status,
+      machine.isActive,
+    );
 
     return {
       found: true,
@@ -189,13 +240,14 @@ export class MachinesService {
         serialNumber: machine.serialNumber,
         nfcId: dto.nfcId,
         status: machineStatus,
-        location: machine.latitude && machine.longitude
-          ? {
-              address: machine.name || '',
-              latitude: machine.latitude,
-              longitude: machine.longitude,
-            }
-          : null,
+        location:
+          machine.latitude && machine.longitude
+            ? {
+                address: machine.name || '',
+                latitude: machine.latitude,
+                longitude: machine.longitude,
+              }
+            : null,
         isActive: machine.isActive,
       },
       lastControl,
@@ -203,20 +255,30 @@ export class MachinesService {
       allowedActions,
       validation: {
         gpsValid,
-        gpsDistanceMeters: gpsDistanceMeters ? Math.round(gpsDistanceMeters) : null,
+        gpsDistanceMeters: gpsDistanceMeters
+          ? Math.round(gpsDistanceMeters)
+          : null,
         maxDistanceMeters: MachinesService.GPS_MAX_DISTANCE_METERS,
         isWithinRange: gpsValid,
       },
     };
   }
 
-  private calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  private calculateDistance(
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number,
+  ): number {
     const R = 6371000;
     const dLat = this.toRad(lat2 - lat1);
     const dLng = this.toRad(lng2 - lng1);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
-      Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.toRad(lat1)) *
+        Math.cos(this.toRad(lat2)) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   }
@@ -233,24 +295,52 @@ export class MachinesService {
     return nfcId.toLowerCase();
   }
 
-  private normalizeStatus(status: string | undefined, isActive: boolean): string {
+  private normalizeStatus(
+    status: string | undefined,
+    isActive: boolean,
+  ): string {
     if (!isActive) return 'INACTIVE';
-    const validStatuses = ['OPERATIVE', 'MAINTENANCE', 'OUT_OF_SERVICE', 'PENDING_INSTALL'];
+    const validStatuses = [
+      'OPERATIVE',
+      'MAINTENANCE',
+      'OUT_OF_SERVICE',
+      'PENDING_INSTALL',
+    ];
     const normalizedStatus = status || 'OPERATIVE';
-    return validStatuses.includes(normalizedStatus) ? normalizedStatus : 'OPERATIVE';
+    return validStatuses.includes(normalizedStatus)
+      ? normalizedStatus
+      : 'OPERATIVE';
   }
 
   private getAllowedActions(roles?: string[]): string[] {
     const userRoles = roles || ['TECHNICIAN'];
     const allActions: string[] = [];
     if (userRoles.includes('ADMIN')) {
-      allActions.push('VIEW_MACHINE', 'VIEW_VISITS', 'CREATE_VISIT', 'CREATE_ORDER', 'REPORT_MERMA', 'UPDATE_MACHINE', 'DELETE_MACHINE');
+      allActions.push(
+        'VIEW_MACHINE',
+        'VIEW_VISITS',
+        'CREATE_VISIT',
+        'CREATE_ORDER',
+        'REPORT_MERMA',
+        'UPDATE_MACHINE',
+        'DELETE_MACHINE',
+      );
     }
     if (userRoles.includes('TECHNICIAN')) {
-      allActions.push('VIEW_MACHINE', 'VIEW_VISITS', 'CREATE_VISIT', 'REPORT_MERMA');
+      allActions.push(
+        'VIEW_MACHINE',
+        'VIEW_VISITS',
+        'CREATE_VISIT',
+        'REPORT_MERMA',
+      );
     }
     if (userRoles.includes('VENDOR')) {
-      allActions.push('VIEW_MACHINE', 'VIEW_VISITS', 'CREATE_SALE', 'VIEW_CLIENT');
+      allActions.push(
+        'VIEW_MACHINE',
+        'VIEW_VISITS',
+        'CREATE_SALE',
+        'VIEW_CLIENT',
+      );
     }
     return [...new Set(allActions)];
   }
