@@ -41,16 +41,13 @@ export class NfcTag {
   @Column({ name: 'hardware_model', length: 20, default: 'NTAG215' })
   hardwareModel: string;
 
-  // SID (Serial ID): Identificador único de serie de la máquina para vinculación del activo físico
-  @Column({ name: 'machine_serial_id', length: 255 })
+  @Column({ name: 'machine_serial_id', length: 255, nullable: true })
   machineSerialId: string;
 
-  // TID (Tenant ID): Identificador ofuscado del cliente para evitar trazabilidad directa
-  @Column({ name: 'tenant_id_obfuscated', length: 255 })
+  @Column({ name: 'tenant_id_obfuscated', length: 255, nullable: true })
   tenantIdObfuscated: string;
 
-  // CHK (Checksum): Hash corto para verificar integridad de datos y detectar alteraciones
-  @Column({ name: 'integrity_checksum', length: 255 })
+  @Column({ name: 'integrity_checksum', length: 255, nullable: true })
   integrityChecksum: string;
 
   @Column({ name: 'is_locked', default: false })
