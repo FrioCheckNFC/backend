@@ -226,11 +226,7 @@ export class MachinesService {
   }
 
   private normalizeNfcId(nfcId: string): string {
-    const cleanId = nfcId.replace(/[:-]/g, '').toLowerCase();
-    if (cleanId.length === 32) {
-      return `${cleanId.slice(0, 8)}-${cleanId.slice(8, 12)}-${cleanId.slice(12, 16)}-${cleanId.slice(16, 20)}-${cleanId.slice(20, 32)}`;
-    }
-    return nfcId.toLowerCase();
+    return nfcId.replace(/[-\s]/g, '').toUpperCase();
   }
 
   private normalizeStatus(status: string | undefined, isActive: boolean): string {

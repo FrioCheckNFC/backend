@@ -12,9 +12,18 @@ export class TypeOrmNfcTagRepositoryAdapter implements NfcTagRepositoryPort {
   ) {}
 
   async findByUid(uid: string, tenantId?: string): Promise<NfcTag | null> {
-    const where: any = { uid };
-    if (tenantId) where.tenant = { id: tenantId };
-    return (this.repo as any).findOne({ where, relations: ['machine', 'tenant'] });
+    const cleanUid = uid.replace(/[-\s]/g, '').toUpperCase();
+    
+    const query = (this.repo as any).createQueryBuilder('nfcTag')
+      .leftJoinAndSelect('nfcTag.machine', 'machine')
+      .leftJoinAndSelect('nfcTag.tenant', 'tenant')
+      .where('REPLACE(nfcTag.uid, \\'-\\', \\'\\') = :cleanUid', { cleanUid });
+
+    if (tenantId) {
+      query.andWhere('nfcTag.tenant_id = :tenantId', { tenantId });
+    }
+
+    return query.getOne();
   }
 
   async findByMachineId(machineId: string, tenantId?: string): Promise<NfcTag | null> {
