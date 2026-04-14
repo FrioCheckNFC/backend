@@ -54,7 +54,9 @@ export class MachinesService {
     }
 
     const machineTenantId = nfcTag.tenant_id || tenantId;
-    const machine = await this.machinesRepo.findOne(nfcTag.machine_id, machineTenantId);
+    const machineId = nfcTag.machine_id;
+    
+    const machine = await this.machinesRepo.findById(machineId, machineTenantId);
     if (!machine) {
       throw new NotFoundException('Máquina no encontrada');
     }

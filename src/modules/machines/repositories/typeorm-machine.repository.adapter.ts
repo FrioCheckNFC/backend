@@ -26,12 +26,19 @@ export class TypeOrmMachineRepositoryAdapter implements MachineRepositoryPort {
       .where('machine.tenant_id = :tenantId', { tenantId });
 
     if (this.isUUID(identifier)) {
-      query.andWhere('(machine.id = :identifier OR machine.serial_number = :identifier)', { identifier });
+      query.andWhere('(machine.id::text = :identifier OR machine.serial_number = :identifier)', { identifier });
     } else {
       query.andWhere('machine.serial_number = :identifier', { identifier });
     }
 
     return query.getOne();
+  }
+
+  async findById(id: string, tenantId: string): Promise<Machine | null> {
+    return this.repo.findOne({
+      where: { id, tenantId },
+      relations: ['store'],
+    });
   }
 
   private isUUID(str: string): boolean {
