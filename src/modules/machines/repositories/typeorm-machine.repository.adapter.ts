@@ -15,12 +15,14 @@ export class TypeOrmMachineRepositoryAdapter implements MachineRepositoryPort {
   async findAll(tenantId: string): Promise<Machine[]> {
     return this.repo.find({
       where: { tenantId },
+      relations: ['store'],
       order: { createdAt: 'DESC' },
     });
   }
 
   async findOne(identifier: string, tenantId: string): Promise<Machine | null> {
     const query = this.repo.createQueryBuilder('machine')
+      .leftJoinAndSelect('machine.store', 'store')
       .where('machine.tenant_id = :tenantId', { tenantId });
 
     if (this.isUUID(identifier)) {
