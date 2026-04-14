@@ -46,6 +46,12 @@ export class Store {
   @Column({ length: 255, nullable: true })
   address: string;
 
+  @Column({ name: 'retailer_phone', length: 20, nullable: true })
+  retailerPhone: string;
+
+  @Column({ name: 'retailer_email', length: 255, nullable: true })
+  retailerEmail: string;
+
   @Column({ type: 'decimal', precision: 10, scale: 8, nullable: true })
   latitude: number;
 

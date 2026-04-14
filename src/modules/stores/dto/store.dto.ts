@@ -21,6 +21,16 @@ export class CreateStoreDto {
   @IsOptional()
   retailerId?: string;
 
+  @ApiProperty({ description: 'Teléfono del minorista', required: false })
+  @IsString()
+  @IsOptional()
+  retailerPhone?: string;
+
+  @ApiProperty({ description: 'Correo del minorista', required: false })
+  @IsString()
+  @IsOptional()
+  retailerEmail?: string;
+
   @ApiProperty({ description: 'Latitud', required: false })
   @IsNumber()
   @IsOptional()
@@ -52,6 +62,16 @@ export class UpdateStoreDto {
   @IsUUID()
   @IsOptional()
   retailerId?: string;
+
+  @ApiProperty({ description: 'Teléfono del minorista', required: false })
+  @IsString()
+  @IsOptional()
+  retailerPhone?: string;
+
+  @ApiProperty({ description: 'Correo del minorista', required: false })
+  @IsString()
+  @IsOptional()
+  retailerEmail?: string;
 
   @ApiProperty({ description: 'Latitud', required: false })
   @IsNumber()
