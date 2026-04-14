@@ -41,15 +41,6 @@ export class NfcTag {
   @Column({ name: 'hardware_model', length: 20, default: 'NTAG215' })
   hardwareModel: string;
 
-  @Column({ name: 'machine_serial_id', length: 255, nullable: true })
-  machineSerialId: string;
-
-  @Column({ name: 'tenant_id_obfuscated', length: 255, nullable: true })
-  tenantIdObfuscated: string;
-
-  @Column({ name: 'integrity_checksum', length: 255, nullable: true })
-  integrityChecksum: string;
-
   @Column({ name: 'is_locked', default: false })
   isLocked: boolean;
 

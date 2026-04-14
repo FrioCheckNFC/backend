@@ -20,24 +20,11 @@ export class NfcTagsService {
     const nfcTagData = {
       uid: createNfcTagDto.uid,
       tagModel: createNfcTagDto.tagModel || 'NTAG-215',
-      machineSerialId: createNfcTagDto.machineSerialId || `SID-${createNfcTagDto.uid.substring(0, 8)}`,
-      tenantIdObfuscated: createNfcTagDto.tenantIdObfuscated || `TENANT-${createNfcTagDto.tenantId.substring(0, 8)}`,
-      integrityChecksum: createNfcTagDto.integrityChecksum || this.generateChecksum(createNfcTagDto.uid),
       tenant: { id: createNfcTagDto.tenantId } as any,
       machine: { id: createNfcTagDto.machineId } as any,
     };
 
     return this.nfcTagRepository.create(nfcTagData);
-  }
-
-  private generateChecksum(uid: string): string {
-    let hash = 0;
-    for (let i = 0; i < uid.length; i++) {
-      const char = uid.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
-    }
-    return Math.abs(hash).toString(16).substring(0, 16);
   }
 
   async findByUid(uid: string, tenantId?: string): Promise<NfcTag> {
@@ -70,10 +57,5 @@ export class NfcTagsService {
     const nfcTag = await this.findByUid(uid, tenantId);
     nfcTag.isActive = false;
     return this.nfcTagRepository.save(nfcTag);
-  }
-
-  async validateIntegrity(uid: string, checksum: string, tenantId?: string): Promise<boolean> {
-    const nfcTag = await this.findByUid(uid, tenantId);
-    return nfcTag.integrityChecksum === checksum;
   }
 }
