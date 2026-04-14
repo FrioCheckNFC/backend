@@ -17,11 +17,13 @@ import { ScanMachineDto } from '../dto/scan-machine.dto';
 import { NfcReadDto } from '../dto/nfc-read.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../../auth/guards/tenant.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('Machines')
 @ApiBearerAuth()
-@UseGuards(JwtAuthGuard, TenantGuard)
+@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 @Controller('machines')
 export class MachinesController {
   constructor(private readonly machinesService: MachinesService) {}
@@ -45,12 +47,14 @@ export class MachinesController {
   }
 
   @Post()
+  @Roles('ADMIN', 'TECHNICIAN')
   @ApiOperation({ summary: 'Crear una nueva máquina' })
   create(@Body() createMachineDto: CreateMachineDto, @Req() req: any) {
     return this.machinesService.create(createMachineDto, req.user.tenantId);
   }
 
   @Patch(':id')
+  @Roles('ADMIN', 'TECHNICIAN')
   @ApiOperation({ summary: 'Actualizar una máquina' })
   update(
     @Param('id') id: string,
@@ -61,6 +65,7 @@ export class MachinesController {
   }
 
   @Delete(':id')
+  @Roles('ADMIN')
   @ApiOperation({ summary: 'Eliminar una máquina (Soft Delete)' })
   remove(@Param('id') id: string, @Req() req: any) {
     return this.machinesService.remove(id, req.user.tenantId);
