@@ -23,6 +23,25 @@ export class TypeOrmNfcTagRepositoryAdapter implements NfcTagRepositoryPort {
     return (this.repo as any).findOne({ where, relations: ['machine', 'tenant'] });
   }
 
+  async findByMachineIdOrSerial(machineIdOrSerial: string, tenantId: string): Promise<NfcTag | null> {
+    const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(machineIdOrSerial);
+    
+    const query = (this.repo as any).createQueryBuilder('nfcTag')
+      .where('nfcTag.tenant_id = :tenantId', { tenantId })
+      .leftJoinAndSelect('nfcTag.machine', 'machine');
+
+    if (isUUID) {
+      query.andWhere('(machine.id = :id OR machine.serial_number = :serial)', { 
+        id: machineIdOrSerial, 
+        serial: machineIdOrSerial 
+      });
+    } else {
+      query.andWhere('machine.serial_number = :serial', { serial: machineIdOrSerial });
+    }
+
+    return query.getOne();
+  }
+
   async findAll(tenantId: string, isActive?: boolean): Promise<NfcTag[]> {
     const query = (this.repo as any).createQueryBuilder('nfcTag')
       .where('nfcTag.tenant_id = :tenantId', { tenantId })

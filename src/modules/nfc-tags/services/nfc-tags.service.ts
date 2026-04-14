@@ -43,6 +43,14 @@ export class NfcTagsService {
     return nfcTag;
   }
 
+  async findByMachineIdOrSerial(machineIdOrSerial: string, tenantId: string): Promise<NfcTag> {
+    const nfcTag = await this.nfcTagRepository.findByMachineIdOrSerial(machineIdOrSerial, tenantId);
+    if (!nfcTag) {
+      throw new NotFoundException(`NFC tag for machine ${machineIdOrSerial} not found`);
+    }
+    return nfcTag;
+  }
+
   async findAll(tenantId: string, isActive?: boolean): Promise<NfcTag[]> {
     return this.nfcTagRepository.findAll(tenantId, isActive);
   }

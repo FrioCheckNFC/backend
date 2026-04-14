@@ -26,9 +26,9 @@ export class NfcTagsController {
   }
 
   @Get('machine/:machineId')
-  @ApiOperation({ summary: 'Obtener tag por ID de máquina' })
-  findByMachine(@Param('machineId') machineId: string, @Query('tenantId') tenantId: string) {
-    return this.nfcTagsService.findByMachineId(machineId, tenantId);
+  @ApiOperation({ summary: 'Obtener tag por ID o serial de máquina' })
+  findByMachine(@Param('machineId') machineIdOrSerial: string, @Query('tenantId') tenantId: string) {
+    return this.nfcTagsService.findByMachineIdOrSerial(machineIdOrSerial, tenantId);
   }
 
   @Get()
