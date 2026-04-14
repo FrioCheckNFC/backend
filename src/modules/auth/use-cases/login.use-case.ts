@@ -42,7 +42,7 @@ export class LoginUseCase {
     }
 
     const userRole = user.role || [];
-    const isSuperAdmin = userRole.includes('SUPER_ADMIN');
+    const isSuperAdmin = Array.isArray(userRole) && userRole.includes('SUPER_ADMIN');
 
     if (!isSuperAdmin) {
       try {

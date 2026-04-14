@@ -132,11 +132,12 @@ export class AuthService {
   }
 
   async createSuperAdmin(data: { email: string; password: string; firstName: string; lastName: string }) {
-    const existingSuperAdmin = await this.usersRepo.findOne({
-      where: { role: 'SUPER_ADMIN' } as any,
-    });
+    const existing = await this.usersRepo
+      .createQueryBuilder('user')
+      .where('user.role @> :role', { role: '["SUPER_ADMIN"]' })
+      .getOne();
 
-    if (existingSuperAdmin) {
+    if (existing) {
       throw new BadRequestException('Ya existe un SUPER_ADMIN');
     }
 

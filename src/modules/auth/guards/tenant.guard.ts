@@ -10,7 +10,7 @@ export class TenantGuard implements CanActivate {
       throw new ForbiddenException('Usuario no autenticado');
     }
 
-    if (user.role && user.role.includes('SUPER_ADMIN')) {
+    if (Array.isArray(user.role) && user.role.includes('SUPER_ADMIN')) {
       return true;
     }
 

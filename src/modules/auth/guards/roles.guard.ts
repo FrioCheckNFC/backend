@@ -27,7 +27,7 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     // Revisar si alguno de los roles del usuario esta en la lista de permitidos
-    const userRoles = user.role || [];
+    const userRoles = Array.isArray(user.role) ? user.role : [];
     return requiredRoles.some((role) => userRoles.includes(role));
   }
 }
