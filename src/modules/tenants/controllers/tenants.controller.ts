@@ -15,36 +15,36 @@ export class TenantsController {
   constructor(private readonly tenantsService: TenantsService) {}
 
   @Post()
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Crear una nueva empresa (Solo Admin)' })
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Crear una nueva empresa (Admin/SuperAdmin)' })
   create(@Body() createTenantDto: CreateTenantDto) {
     return this.tenantsService.create(createTenantDto);
   }
 
   @Get()
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Listar todas las empresas (Solo Admin)' })
+  @Roles('ADMIN', 'SUPER_ADMIN')
+  @ApiOperation({ summary: 'Listar todas las empresas (Admin/SuperAdmin)' })
   findAll() {
     return this.tenantsService.findAll();
   }
 
   @Get(':id')
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Obtener empresa por ID' })
   findOne(@Param('id') id: string) {
     return this.tenantsService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles('ADMIN')
+  @Roles('ADMIN', 'SUPER_ADMIN')
   @ApiOperation({ summary: 'Actualizar empresa por ID' })
   update(@Param('id') id: string, @Body() updateTenantDto: UpdateTenantDto) {
     return this.tenantsService.update(id, updateTenantDto);
   }
 
   @Delete(':id')
-  @Roles('ADMIN')
-  @ApiOperation({ summary: 'Eliminar empresa por ID' })
+  @Roles('SUPER_ADMIN')
+  @ApiOperation({ summary: 'Eliminar empresa por ID (Solo SuperAdmin)' })
   remove(@Param('id') id: string) {
     return this.tenantsService.remove(id);
   }

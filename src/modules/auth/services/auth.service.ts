@@ -130,4 +130,36 @@ export class AuthService {
       email: user.email,
     };
   }
+
+  async createSuperAdmin(data: { email: string; password: string; firstName: string; lastName: string }) {
+    const existingSuperAdmin = await this.usersRepo.findOne({
+      where: { role: 'SUPER_ADMIN' } as any,
+    });
+
+    if (existingSuperAdmin) {
+      throw new BadRequestException('Ya existe un SUPER_ADMIN');
+    }
+
+    const hash = await bcrypt.hash(data.password, 10);
+
+    const user = this.usersRepo.create({
+      email: data.email,
+      passwordHash: hash,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      tenantId: null as any,
+      role: ['SUPER_ADMIN'],
+      active: true,
+    });
+
+    const saved = await this.usersRepo.save(user);
+
+    return {
+      id: saved.id,
+      email: saved.email,
+      firstName: saved.firstName,
+      lastName: saved.lastName,
+      role: saved.role,
+    };
+  }
 }

@@ -82,4 +82,13 @@ export class AuthController {
   validateToken() {
     return { valid: true, message: 'Token válido' };
   }
+
+  @Post('create-super-admin')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Crear SUPER_ADMIN (solo para primera setup)' })
+  @ApiResponse({ status: 201, description: 'SUPER_ADMIN creado' })
+  @ApiResponse({ status: 403, description: 'Ya existe un SUPER_ADMIN' })
+  createSuperAdmin(@Body() dto: any) {
+    return this.authService.createSuperAdmin(dto);
+  }
 }

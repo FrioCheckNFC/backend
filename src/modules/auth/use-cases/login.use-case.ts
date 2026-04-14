@@ -41,16 +41,21 @@ export class LoginUseCase {
       throw new InactiveUserError('Usuario desactivado');
     }
 
-    try {
-      const tenant = await this.tenantsService.findOne(user.tenantId);
-      if (!tenant.isActive) {
-        throw new InactiveUserError('El tenant está deshabilitado');
+    const userRole = user.role || [];
+    const isSuperAdmin = userRole.includes('SUPER_ADMIN');
+
+    if (!isSuperAdmin) {
+      try {
+        const tenant = await this.tenantsService.findOne(user.tenantId);
+        if (!tenant.isActive) {
+          throw new InactiveUserError('El tenant está deshabilitado');
+        }
+      } catch (err) {
+        if (err instanceof NotFoundException) {
+          throw new TenantNotFoundError('Error de configuracion del usuario');
+        }
+        throw err;
       }
-    } catch (err) {
-      if (err instanceof NotFoundException) {
-        throw new TenantNotFoundError('Error de configuracion del usuario');
-      }
-      throw err;
     }
 
     const passwordValid = await this.passwordHasher.compare(
