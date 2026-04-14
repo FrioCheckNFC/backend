@@ -11,8 +11,8 @@ export class NfcTagsService {
     private readonly nfcTagRepository: NfcTagRepositoryPort,
   ) {}
 
-  async create(createNfcTagDto: CreateNfcTagDto): Promise<NfcTag> {
-    const existingTag = await this.nfcTagRepository.findByUid(createNfcTagDto.uid);
+  async create(createNfcTagDto: CreateNfcTagDto, tenantId: string): Promise<NfcTag> {
+    const existingTag = await this.nfcTagRepository.findByUid(createNfcTagDto.uid, tenantId);
     if (existingTag) {
       throw new BadRequestException('NFC tag with this UID already exists. Possible cloning detected.');
     }
@@ -20,8 +20,8 @@ export class NfcTagsService {
     const nfcTagData = {
       uid: createNfcTagDto.uid,
       tagModel: createNfcTagDto.tagModel || 'NTAG-215',
-      tenant: { id: createNfcTagDto.tenantId } as any,
-      machine: { id: createNfcTagDto.machineId } as any,
+      tenant_id: tenantId,
+      machine_id: createNfcTagDto.machineId,
     };
 
     return this.nfcTagRepository.create(nfcTagData);

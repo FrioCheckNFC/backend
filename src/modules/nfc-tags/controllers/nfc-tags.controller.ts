@@ -1,5 +1,5 @@
 // controllers/nfc-tags.controller.ts
-import { Controller, Get, Post, Body, Param, UseGuards, Query, Patch } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Query, Req } from '@nestjs/common';
 import { NfcTagsService } from '../services/nfc-tags.service';
 import { CreateNfcTagDto } from '../dto/nfc-tag.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -15,9 +15,40 @@ export class NfcTagsController {
 
   @Post()
   @ApiOperation({ summary: 'Registrar un nuevo tag NFC' })
-  create(@Body() createNfcTagDto: CreateNfcTagDto) {
-    return this.nfcTagsService.create(createNfcTagDto);
+  create(@Body() createNfcTagDto: CreateNfcTagDto, @Req() req: any) {
+    return this.nfcTagsService.create(createNfcTagDto, req.user.tenantId);
   }
+
+  @Get('uid/:uid')
+  @ApiOperation({ summary: 'Obtener tag por UID' })
+  findByUid(@Param('uid') uid: string, @Req() req: any) {
+    return this.nfcTagsService.findByUid(uid, req.user.tenantId);
+  }
+
+  @Get('machine/:machineId')
+  @ApiOperation({ summary: 'Obtener tag por ID o serial de máquina' })
+  findByMachine(@Param('machineId') machineIdOrSerial: string, @Req() req: any) {
+    return this.nfcTagsService.findByMachineIdOrSerial(machineIdOrSerial, req.user.tenantId);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Listar todos los tags del tenant' })
+  findAll(@Req() req: any, @Query('isActive') isActive?: boolean) {
+    return this.nfcTagsService.findAll(req.user.tenantId, isActive);
+  }
+
+  @Patch('lock/:uid')
+  @ApiOperation({ summary: 'Bloquear tag permanentemente' })
+  lockTag(@Param('uid') uid: string, @Req() req: any) {
+    return this.nfcTagsService.lockTag(uid, req.user.tenantId);
+  }
+
+  @Patch('deactivate/:uid')
+  @ApiOperation({ summary: 'Desactivar tag' })
+  deactivateTag(@Param('uid') uid: string, @Req() req: any) {
+    return this.nfcTagsService.deactivateTag(uid, req.user.tenantId);
+  }
+}
 
   @Get('uid/:uid')
   @ApiOperation({ summary: 'Obtener tag por UID' })
