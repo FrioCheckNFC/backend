@@ -17,7 +17,11 @@ export class TypeOrmNfcTagRepositoryAdapter implements NfcTagRepositoryPort {
     const query = (this.repo as any).createQueryBuilder('nfcTag')
       .leftJoinAndSelect('nfcTag.machine', 'machine')
       .leftJoinAndSelect('nfcTag.tenant', 'tenant')
-      .where('REPLACE(nfcTag.uid, \\'-\\', \\'\\') = :cleanUid', { cleanUid });
+      .where('REPLACE(nfcTag.uid, :dash, :empty) = :cleanUid', { 
+        cleanUid, 
+        dash: '-', 
+        empty: '' 
+      });
 
     if (tenantId) {
       query.andWhere('nfcTag.tenant_id = :tenantId', { tenantId });
