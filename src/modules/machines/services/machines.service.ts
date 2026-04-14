@@ -49,12 +49,12 @@ export class MachinesService {
       throw new ForbiddenException('Este tag NFC está inactivo');
     }
 
-    if (!nfcTag.machineId) {
+    if (!nfcTag.machine_id) {
       throw new NotFoundException('El tag NFC no está vinculado a ninguna máquina');
     }
 
     const machineTenantId = nfcTag.tenant_id || tenantId;
-    const machine = await this.machinesRepo.findOne(nfcTag.machineId, machineTenantId);
+    const machine = await this.machinesRepo.findOne(nfcTag.machine_id, machineTenantId);
     if (!machine) {
       throw new NotFoundException('Máquina no encontrada');
     }
