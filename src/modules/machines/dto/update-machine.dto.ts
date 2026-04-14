@@ -27,6 +27,15 @@ export class UpdateMachineDto {
   @IsString()
   serialNumber?: string;
 
+  @ApiProperty({ 
+    example: 'MAINTENANCE', 
+    description: 'ACTIVE, MAINTENANCE, OUT_OF_SERVICE',
+    required: false 
+  })
+  @IsOptional()
+  @IsString()
+  status?: string;
+
   @ApiProperty({ example: 'NFC-XYZ-002', required: false })
   @IsOptional()
   @IsString()
