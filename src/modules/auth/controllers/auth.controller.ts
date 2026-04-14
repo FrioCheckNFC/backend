@@ -7,6 +7,7 @@ import { LoginDto } from '../dto/login.dto';
 import { RegisterDto } from '../dto/register.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { ResetPasswordDto } from '../dto/reset-password.dto';
+import { CreateSuperAdminDto } from '../dto/create-super-admin.dto';
 import { AuthService } from '../services/auth.service';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/roles.guard';
@@ -88,7 +89,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Crear SUPER_ADMIN (solo para primera setup)' })
   @ApiResponse({ status: 201, description: 'SUPER_ADMIN creado' })
   @ApiResponse({ status: 403, description: 'Ya existe un SUPER_ADMIN' })
-  createSuperAdmin(@Body() dto: any) {
+  createSuperAdmin(@Body() dto: CreateSuperAdminDto) {
     return this.authService.createSuperAdmin(dto);
   }
 }
