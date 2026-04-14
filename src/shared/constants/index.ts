@@ -49,11 +49,9 @@ export const MAX_PAGE_SIZE = 100;
 // ESTADOS
 // =====================
 export const MACHINE_STATUSES = [
-  'OPERATIVE',
+  'ACTIVE',
   'MAINTENANCE',
   'OUT_OF_SERVICE',
-  'PENDING_INSTALL',
-  'INACTIVE',
 ] as const;
 
 export const VISIT_STATUSES = ['PENDING', 'COMPLETED', 'FLAGGED'] as const;

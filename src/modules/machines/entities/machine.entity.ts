@@ -56,7 +56,7 @@ export class Machine {
   @Column({ name: 'serial_number', length: 255, nullable: true })
   serialNumber?: string;
 
-  @Column({ length: 50, default: 'OPERATIVE', nullable: true })
+  @Column({ length: 50, default: 'ACTIVE', nullable: true })
   status?: string;
 
   @Column({ name: 'is_active', default: true })

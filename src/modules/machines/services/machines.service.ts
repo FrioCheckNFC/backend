@@ -234,10 +234,10 @@ export class MachinesService {
   }
 
   private normalizeStatus(status: string | undefined, isActive: boolean): string {
-    if (!isActive) return 'INACTIVE';
-    const validStatuses = ['OPERATIVE', 'MAINTENANCE', 'OUT_OF_SERVICE', 'PENDING_INSTALL'];
-    const normalizedStatus = status || 'OPERATIVE';
-    return validStatuses.includes(normalizedStatus) ? normalizedStatus : 'OPERATIVE';
+    if (!isActive) return 'OUT_OF_SERVICE';
+    const validStatuses = ['ACTIVE', 'MAINTENANCE', 'OUT_OF_SERVICE'];
+    const normalizedStatus = status || 'ACTIVE';
+    return validStatuses.includes(normalizedStatus) ? normalizedStatus : 'ACTIVE';
   }
 
   private getAllowedActions(roles?: string[]): string[] {
