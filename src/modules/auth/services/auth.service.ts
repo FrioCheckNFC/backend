@@ -134,7 +134,7 @@ export class AuthService {
   async createSuperAdmin(data: { email: string; password: string; firstName: string; lastName: string }) {
     const existing = await this.usersRepo
       .createQueryBuilder('user')
-      .where('user.role @> :role', { role: '["SUPER_ADMIN"]' })
+      .where('user.role @> :role', { role: ['SUPER_ADMIN'] })
       .getOne();
 
     if (existing) {
@@ -149,7 +149,7 @@ export class AuthService {
       firstName: data.firstName,
       lastName: data.lastName,
       tenantId: null as any,
-      role: ['SUPER_ADMIN'],
+      role: ['SUPER_ADMIN'] as any,
       active: true,
     });
 
