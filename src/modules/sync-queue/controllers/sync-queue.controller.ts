@@ -11,10 +11,10 @@ import {
 } from '@nestjs/common';
 import { SyncQueueService } from '../services/sync-queue.service';
 import { CreateSyncQueueDto, UpdateSyncStatusDto } from '../dto/sync-queue.dto';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { TenantGuard } from '../../auth/guards/tenant.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../auth/infrastructure/http/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/infrastructure/http/guards/roles.guard';
+import { TenantGuard } from '../../auth/infrastructure/http/guards/tenant.guard';
+import { Roles } from '../../auth/infrastructure/http/decorators/roles.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('Sync-Queue')

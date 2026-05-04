@@ -24,18 +24,18 @@ import { StoresModule } from './modules/stores/stores.module';
 
 // EXPLICT ENTITY IMPORTS FOR AZURE STABILITY
 import { Attachment } from './modules/attachments/entities/attachment.entity';
-import { PasswordReset } from './modules/auth/entities/password-reset.entity';
+import { PasswordReset } from './modules/auth/infrastructure/database/entities/password-reset.entity';
 import { InventoryItem } from './modules/inventory/entities/inventory.entity';
 import { Kpi } from './modules/kpis/entities/kpi.entity';
-import { Machine } from './modules/machines/entities/machine.entity';
+import { MachineTypeOrmEntity as Machine } from './modules/machines/infrastructure/database/entities/machine.typeorm.entity';
 import { Merma } from './modules/mermas/entities/merma.entity';
 import { NfcTag } from './modules/nfc-tags/entities/nfc-tag.entity';
 import { Sale } from './modules/sales/entities/sale.entity';
 import { Sector } from './modules/sectors/entities/sector.entity';
 import { SyncQueue } from './modules/sync-queue/entities/sync-queue.entity';
-import { Tenant } from './modules/tenants/entities/tenant.entity';
+import { TenantTypeOrmEntity as Tenant } from './modules/tenants/infrastructure/database/entities/tenant.typeorm.entity';
 import { Ticket } from './modules/tickets/entities/ticket.entity';
-import { User } from './modules/users/entities/user.entity';
+import { UserTypeOrmEntity as User } from './modules/users/infrastructure/database/entities/user.typeorm.entity';
 import { Visit } from './modules/visits/entities/visit.entity';
 import { WorkOrder } from './modules/work-orders/entities/work-order.entity';
 import { Store } from './modules/stores/entities/store.entity';

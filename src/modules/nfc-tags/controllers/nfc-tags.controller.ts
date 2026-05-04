@@ -2,8 +2,8 @@
 import { Controller, Get, Post, Body, Param, UseGuards, Query, Req, Patch } from '@nestjs/common';
 import { NfcTagsService } from '../services/nfc-tags.service';
 import { CreateNfcTagDto } from '../dto/nfc-tag.dto';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { TenantGuard } from '../../auth/guards/tenant.guard';
+import { JwtAuthGuard } from '../../auth/infrastructure/http/guards/jwt-auth.guard';
+import { TenantGuard } from '../../auth/infrastructure/http/guards/tenant.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('NFC Tags')

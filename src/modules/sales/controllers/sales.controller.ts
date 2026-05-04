@@ -11,10 +11,10 @@ import {
 } from '@nestjs/common';
 import { SalesService } from '../services/sales.service';
 import { CreateSaleDto, UpdateSaleDto } from '../dto/sale.dto';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { TenantGuard } from '../../auth/guards/tenant.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../auth/infrastructure/http/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/infrastructure/http/guards/roles.guard';
+import { TenantGuard } from '../../auth/infrastructure/http/guards/tenant.guard';
+import { Roles } from '../../auth/infrastructure/http/decorators/roles.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('Sales')

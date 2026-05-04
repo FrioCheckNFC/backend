@@ -8,8 +8,8 @@ import {
   ManyToOne,
   JoinColumn,
 } from 'typeorm';
-import { Tenant } from '../../tenants/entities/tenant.entity';
-import { User } from '../../users/entities/user.entity';
+import { TenantTypeOrmEntity as Tenant } from '../../tenants/infrastructure/database/entities/tenant.typeorm.entity';
+import { UserTypeOrmEntity as User } from '../../users/infrastructure/database/entities/user.typeorm.entity';
 
 export enum SyncOperationType {
   VISIT_CHECKIN = 'visit_check_in',

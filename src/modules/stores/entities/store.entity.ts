@@ -9,10 +9,10 @@ import {
   OneToMany,
   JoinColumn,
 } from 'typeorm';
-import { Tenant } from '../../tenants/entities/tenant.entity';
-import { User } from '../../users/entities/user.entity';
+import { TenantTypeOrmEntity as Tenant } from '../../tenants/infrastructure/database/entities/tenant.typeorm.entity';
+import { UserTypeOrmEntity as User } from '../../users/infrastructure/database/entities/user.typeorm.entity';
 import { Sector } from '../../sectors/entities/sector.entity';
-import { Machine } from '../../machines/entities/machine.entity';
+import { MachineTypeOrmEntity as Machine } from '../../machines/infrastructure/database/entities/machine.typeorm.entity';
 
 @Entity('stores')
 export class Store {

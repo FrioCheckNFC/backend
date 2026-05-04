@@ -9,8 +9,8 @@ import {
   JoinColumn,
   OneToOne,
 } from 'typeorm';
-import { Tenant } from '../../tenants/entities/tenant.entity';
-import { Machine } from '../../machines/entities/machine.entity';
+import { TenantTypeOrmEntity as Tenant } from '../../tenants/infrastructure/database/entities/tenant.typeorm.entity';
+import { MachineTypeOrmEntity as Machine } from '../../machines/infrastructure/database/entities/machine.typeorm.entity';
 
 @Entity('nfc_tags')
 export class NfcTag {

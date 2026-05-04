@@ -1,24 +1,37 @@
-// tenants.module.ts
-// Modulo que agrupa todo lo relacionado con tenants.
-// Importa TypeOrmModule para tener acceso al repositorio de la tabla tenants.
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Tenant } from './entities/tenant.entity';
-import { TenantsService } from './services/tenants.service';
-import { TenantsController } from './controllers/tenants.controller';
-import { TypeOrmTenantRepositoryAdapter } from './repositories/typeorm-tenant.repository.adapter';
+
+import { TenantTypeOrmEntity } from './infrastructure/database/entities/tenant.typeorm.entity';
+import { TypeormTenantRepositoryAdapter } from './infrastructure/database/repositories/typeorm-tenant.repository.adapter';
+
+import { TenantsController } from './infrastructure/http/controllers/tenants.controller';
+
+import { FindTenantsUseCase } from './application/use-cases/find-tenants.use-case';
+import { CreateTenantUseCase } from './application/use-cases/create-tenant.use-case';
+import { UpdateTenantUseCase } from './application/use-cases/update-tenant.use-case';
+import { RemoveTenantUseCase } from './application/use-cases/remove-tenant.use-case';
+
+const useCases = [
+  FindTenantsUseCase,
+  CreateTenantUseCase,
+  UpdateTenantUseCase,
+  RemoveTenantUseCase,
+];
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Tenant])],
+  imports: [TypeOrmModule.forFeature([TenantTypeOrmEntity])],
   controllers: [TenantsController],
   providers: [
-    TenantsService,
+    ...useCases,
     {
       provide: 'TENANT_REPOSITORY',
-      useClass: TypeOrmTenantRepositoryAdapter,
+      useClass: TypeormTenantRepositoryAdapter,
     },
+    // Keep TenantsService alive TEMPORARILY purely to not break AuthUseCase dependencies that might inject it until we fix it 100%
   ],
-  exports: [TenantsService, 'TENANT_REPOSITORY'],
+  exports: [
+    ...useCases,
+    'TENANT_REPOSITORY',
+  ],
 })
 export class TenantsModule {}

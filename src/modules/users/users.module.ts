@@ -1,23 +1,40 @@
-// users.module.ts
-// Modulo de usuarios refactorizado.
-
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './entities/user.entity';
-import { UsersController } from './controllers/users.controller';
-import { UsersService } from './services/users.service';
-import { TypeOrmUserRepositoryAdapter } from './repositories/typeorm-user.repository.adapter';
+
+import { UserTypeOrmEntity } from './infrastructure/database/entities/user.typeorm.entity';
+import { TypeormUserRepositoryAdapter } from './infrastructure/database/repositories/typeorm-user.repository.adapter';
+
+import { UsersController } from './infrastructure/http/controllers/users.controller';
+
+import { FindUsersUseCase } from './application/use-cases/find-users.use-case';
+import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
+import { UpdateUserUseCase } from './application/use-cases/update-user.use-case';
+import { RemoveUserUseCase } from './application/use-cases/remove-user.use-case';
+import { ChangePasswordUseCase } from './application/use-cases/change-password.use-case';
+import { ManageRolesUseCase } from './application/use-cases/manage-roles.use-case';
+
+const useCases = [
+  FindUsersUseCase,
+  CreateUserUseCase,
+  UpdateUserUseCase,
+  RemoveUserUseCase,
+  ChangePasswordUseCase,
+  ManageRolesUseCase,
+];
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])],
+  imports: [TypeOrmModule.forFeature([UserTypeOrmEntity])],
   controllers: [UsersController],
   providers: [
-    UsersService,
+    ...useCases,
     {
       provide: 'USER_REPOSITORY',
-      useClass: TypeOrmUserRepositoryAdapter,
+      useClass: TypeormUserRepositoryAdapter,
     },
   ],
-  exports: [UsersService],
+  exports: [
+    ...useCases,
+    'USER_REPOSITORY',
+  ],
 })
 export class UsersModule {}

@@ -12,10 +12,10 @@ import {
 } from '@nestjs/common';
 import { WorkOrdersService } from '../services/work-orders.service';
 import { CreateWorkOrderDto, UpdateWorkOrderDto } from '../dto/work-order.dto';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { TenantGuard } from '../../auth/guards/tenant.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../auth/infrastructure/http/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/infrastructure/http/guards/roles.guard';
+import { TenantGuard } from '../../auth/infrastructure/http/guards/tenant.guard';
+import { Roles } from '../../auth/infrastructure/http/decorators/roles.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 
 @ApiTags('WorkOrders')

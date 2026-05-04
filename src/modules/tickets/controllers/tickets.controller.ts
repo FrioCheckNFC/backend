@@ -12,10 +12,10 @@ import {
 import { TicketsService } from '../services/tickets.service';
 import { CreateTicketDto } from '../dto/create-ticket.dto';
 import { UpdateTicketDto } from '../dto/update-ticket.dto';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../auth/guards/roles.guard';
-import { TenantGuard } from '../../auth/guards/tenant.guard';
-import { Roles } from '../../auth/decorators/roles.decorator';
+import { JwtAuthGuard } from '../../auth/infrastructure/http/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/infrastructure/http/guards/roles.guard';
+import { TenantGuard } from '../../auth/infrastructure/http/guards/tenant.guard';
+import { Roles } from '../../auth/infrastructure/http/decorators/roles.decorator';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('Tickets')
