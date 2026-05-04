@@ -1,0 +1,552 @@
+# FrioCheck - Esquema de Base de Datos
+
+## Descripción General
+
+Sistema de gestión integral para cámaras de frío y equipos de refrigeración. Controla visitas técnicas, mantenimiento, ventas, mermas, inventario y sincronización offline.
+
+**Tecnologías:** PostgreSQL 17 (Azure), TypeORM, NestJS
+
+---
+
+## Tablas
+
+### 1. TENANTS (Empresas/Clientes)
+
+Empresas o clientes que utilizan el sistema. Cada tenant tiene sus propios usuarios, máquinas, tiendas, etc.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Auto-generado | Identificador único |
+| name | VARCHAR(255) | NOT NULL | Nombre de la empresa |
+| slug | VARCHAR(255) | UNIQUE, NOT NULL | Identificador en URL (ej: "superfrio") |
+| description | TEXT | NULL | Descripción de la empresa |
+| logo_url | VARCHAR(500) | NULL | URL del logo |
+| is_active | BOOLEAN | DEFAULT TRUE | Si está activa |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Relaciones:**
+- 1:N → users (cada usuario pertenece a un tenant)
+
+---
+
+### 2. USERS (Usuarios)
+
+Usuarios del sistema con roles múltiples. Cada usuario puede tener uno o más roles.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| email | VARCHAR(255) | UNIQUE, NOT NULL | Email para login |
+| rut | VARCHAR(12) | UNIQUE, NULL | RUT chileno |
+| password_hash | VARCHAR(255) | NOT NULL | Hash bcrypt |
+| first_name | VARCHAR(255) | NOT NULL | Nombre |
+| last_name | VARCHAR(255) | NOT NULL | Apellido |
+| phone | VARCHAR(20) | NULL | Teléfono |
+| role | TEXT[] | NOT NULL, DEFAULT '{TECHNICIAN}' | **Array de roles** |
+| fcm_tokens | TEXT | NULL | Tokens FCM para push |
+| active | BOOLEAN | DEFAULT TRUE | Si puede hacer login |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Roles disponibles:**
+- `ADMIN`: Administrador del sistema
+- `SUPPORT`: Soporte técnico
+- `VENDOR`: Vendedor
+- `RETAILER`: Minorista/Dueño de tienda
+- `TECHNICIAN`: Técnico de mantenimiento
+- `DRIVER`: Conductor/Repartidor
+
+**Relaciones:**
+- N:1 → tenants
+- 1:N → stores (retailer)
+- 1:N → visits (technician)
+- 1:N → work_orders (created_by, assigned_to)
+- 1:N → tickets (created_by, assigned_to)
+- 1:N → sales (vendor)
+- 1:N → mermas (reported_by)
+
+**Flujo de datos:**
+```
+Registro → Login con email/password → JWT token con roles
+```
+
+---
+
+### 3. SECTORS (Zonas/Regiones)
+
+Zonas geográficas que agrupan múltiples tiendas. Cada sector tiene ubicación GPS para optimizar rutas de técnicos.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| name | VARCHAR(255) | NOT NULL | Nombre del sector |
+| comuna | VARCHAR(255) | NULL | Comuna |
+| city | VARCHAR(255) | NULL | Ciudad |
+| address | VARCHAR(500) | NULL | Dirección |
+| latitude | DECIMAL(10,8) | NULL | Latitud GPS |
+| longitude | DECIMAL(11,8) | NULL | Longitud GPS |
+| is_active | BOOLEAN | DEFAULT TRUE | Si está activo |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Relaciones:**
+- N:1 → tenants
+- 1:N → stores
+
+---
+
+### 4. STORES (Puntos de venta/Minoristas)
+
+Tiendas o locales donde se instalan las máquinas. Cada tienda tiene un retailer asignado.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| sector_id | UUID | FK → sectors(id) | Sector geográfico |
+| retailer_id | UUID | FK → users(id) | Usuario retailer |
+| name | VARCHAR(255) | NOT NULL | Nombre de la tienda |
+| address | VARCHAR(500) | NULL | Dirección |
+| retailer_phone | VARCHAR(20) | NULL | Teléfono del retailer |
+| retailer_email | VARCHAR(255) | NULL | Email del retailer |
+| latitude | DECIMAL(10,8) | NULL | Latitud GPS |
+| longitude | DECIMAL(11,8) | NULL | Longitud GPS |
+| is_active | BOOLEAN | DEFAULT TRUE | Si está activa |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Relaciones:**
+- N:1 → tenants
+- N:1 → sectors
+- N:1 → users (retailer)
+- 1:N → machines
+
+**Flujo de datos:**
+```
+App móvil → Scan NFC → Visit → Machine → Store → Retailer notificado
+```
+
+---
+
+### 5. MACHINES (Equipos/Cámaras de frío)
+
+Equipos de refrigeración instalados en tiendas. Cada máquina puede tener un tag NFC asociado.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| assigned_user_id | UUID | FK → users(id) | Técnico asignado |
+| store_id | UUID | FK → stores(id) | Tienda donde está |
+| name | VARCHAR(255) | NULL | Nombre/ubicación |
+| brand | VARCHAR(255) | NULL | Marca |
+| model | VARCHAR(255) | NULL | Modelo |
+| serial_number | VARCHAR(255) | UNIQUE | Número de serie |
+| status | VARCHAR(50) | DEFAULT 'ACTIVE' | Estado |
+| acquisition_type | VARCHAR(20) | NULL | RENTED o PURCHASED |
+| location_name | VARCHAR(255) | NULL | Nombre de ubicación |
+| location_lat | FLOAT | NULL | Latitud GPS |
+| location_lng | FLOAT | NULL | Longitud GPS |
+| is_active | BOOLEAN | DEFAULT TRUE | Si está activa |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Estados de máquina:**
+- `ACTIVE`: Operativa
+- `MAINTENANCE`: En mantenimiento
+- `OUT_OF_SERVICE`: Fuera de servicio
+
+**Tipo de adquisición:**
+- `RENTED`: Arrendada
+- `PURCHASED`: Comprada
+
+**Relaciones:**
+- N:1 → tenants
+- N:1 → users (assigned_user)
+- N:1 → stores
+- 1:N → visits
+- 1:N → work_orders
+- 1:N → tickets
+- 1:N → nfc_tags
+
+**Flujo de datos:**
+```
+Técnico llega a tienda → Escanea NFC tag → App registra visit
+→ Valida GPS (< 100m) → Registra temperatura → Photo evidencia
+```
+
+---
+
+### 6. VISITS (Registro de visitas técnicas)
+
+Cada vez que un técnico visita una máquina, se registra una visita con GPS, temperatura y fotos.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| technician_id | UUID | FK → users(id) | Técnico que visitó |
+| machine_id | UUID | FK → machines(id) | Máquina visitada |
+| latitude | FLOAT | NULL | Latitud donde escaneó |
+| longitude | FLOAT | NULL | Longitud donde escaneó |
+| nfc_tag_id | VARCHAR(255) | NULL | Tag NFC escaneado |
+| temperature | DECIMAL(5,2) | NULL | Temp. registrada |
+| notes | TEXT | NULL | Notas del técnico |
+| status | VARCHAR(50) | DEFAULT 'completed' | Estado |
+| type | VARCHAR(50) | NULL | Tipo de visita |
+| visited_at | TIMESTAMPTZ | NOT NULL | Fecha de visita |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Estados de visita:**
+- `pending`: Pendiente de completar
+- `completed`: Completada
+- `flagged`: Marcada (algo fuera de lo normal)
+
+**Tipos de visita:**
+- `MAINTENANCE`: Mantenimiento preventivo
+- `SALE`: Visita de venta
+- `INSPECTION`: Inspección
+- `DELIVERY`: Entrega
+
+**Relaciones:**
+- N:1 → tenants
+- N:1 → users (technician)
+- N:1 → machines
+
+**Flujo de datos:**
+```
+App móvil (offline) → Sync queue → API → Visit creada
+→ Notificación a retailer → KPI actualizado
+```
+
+---
+
+### 7. WORK_ORDERS (Órdenes de trabajo)
+
+Órdenes de trabajo generadas por técnicos o administradores para mantenimiento o reparaciones.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| created_by_id | UUID | FK → users(id) | Quien la creó |
+| assigned_to_id | UUID | FK → users(id) | Técnico asignado |
+| machine_id | UUID | FK → machines(id) | Máquina relacionada |
+| title | VARCHAR(255) | NOT NULL | Título |
+| description | TEXT | NULL | Descripción |
+| status | VARCHAR(50) | DEFAULT 'pending' | Estado |
+| priority | VARCHAR(20) | DEFAULT 'medium' | Prioridad |
+| due_date | TIMESTAMP | NULL | Fecha límite |
+| completed_at | TIMESTAMP | NULL | Fecha completado |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Estados:**
+- `pending`: Pendiente
+- `in_progress`: En progreso
+- `completed`: Completada
+- `cancelled`: Cancelada
+
+**Prioridades:**
+- `low`: Baja
+- `medium`: Media
+- `high`: Alta
+- `urgent`: Urgente
+
+**Relaciones:**
+- N:1 → tenants
+- N:1 → users (created_by, assigned_to)
+- N:1 → machines
+
+---
+
+### 8. TICKETS (Reportes de problemas)
+
+Reportes de problemas encontrados por técnicos durante visitas.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| machine_id | UUID | FK → machines(id) | Máquina afectada |
+| created_by_id | UUID | FK → users(id) | Quien reportó |
+| assigned_to_id | UUID | FK → users(id) | Asignado a |
+| title | VARCHAR(255) | NOT NULL | Título |
+| description | TEXT | NULL | Descripción |
+| priority | VARCHAR(20) | DEFAULT 'medium' | Prioridad |
+| status | VARCHAR(50) | DEFAULT 'open' | Estado |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Estados:**
+- `open`: Abierto
+- `in_progress`: En progreso
+- `resolved`: Resuelto
+- `closed`: Cerrado
+
+**Relaciones:**
+- N:1 → tenants
+- N:1 → machines
+- N:1 → users (created_by, assigned_to)
+- 1:N → mermas
+
+---
+
+### 9. SALES (Registro de ventas)
+
+Registro de ventas realizadas por vendors en tiendas.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| vendor_id | UUID | FK → users(id) | Vendedor |
+| sector_id | UUID | FK → sectors(id) | Sector |
+| machine_id | UUID | FK → machines(id) | Máquina |
+| amount | NUMERIC(12,2) | NOT NULL | Monto |
+| description | VARCHAR(500) | NULL | Descripción |
+| sale_date | TIMESTAMP | NOT NULL | Fecha de venta |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Relaciones:**
+- N:1 → tenants
+- N:1 → users (vendor)
+- N:1 → sectors
+- N:1     machines
+
+---
+
+### 10. MERMAS (Pérdidas/Productos vencidos)
+
+Registro de mermas (productos perdidos/vencidos) reportadas por técnicos o retailers.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| reported_by_id | UUID | FK → users(id) | Quien reportó |
+| ticket_id | UUID | FK → tickets(id) | Ticket relacionado |
+| machine_id | UUID | FK → machines(id) | Máquina |
+| product_name | VARCHAR(255) | NOT NULL | Producto |
+| quantity | NUMERIC(10,2) | NOT NULL | Cantidad |
+| unit_cost | NUMERIC(10,2) | NOT NULL | Costo unitario |
+| total_cost | NUMERIC(10,2) | NOT NULL | Costo total |
+| cause | TEXT | NULL | Causa |
+| merma_date | TIMESTAMP | NOT NULL | Fecha de merma |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Relaciones:**
+- N:1 → tenants
+- N:1 → users (reported_by)
+- N:1 → tickets
+- N:1 → machines
+
+---
+
+### 11. INVENTORY (Inventario de repuestos)
+
+Catálogo de repuestos y piezas de inventario.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| part_name | VARCHAR(255) | NOT NULL | Nombre de la pieza |
+| part_number | VARCHAR(100) | NULL | Número de parte |
+| description | VARCHAR(500) | NULL | Descripción |
+| quantity | INTEGER | DEFAULT 0 | Cantidad en stock |
+| min_quantity | INTEGER | DEFAULT 0 | Stock mínimo |
+| unit_cost | NUMERIC(10,2) | NULL | Costo unitario |
+| status | VARCHAR(20) | DEFAULT 'disponible' | Estado |
+| location | VARCHAR(255) | NULL | Ubicación |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Estados:**
+- `disponible`: Disponible
+- `en_uso`: En uso
+- `agotado`: Agotado
+- `en_pedido`: En pedido
+
+---
+
+### 12. ATTACHMENTS (Archivos/fotos)
+
+Archivos subidos como evidencia (fotos, PDFs). El archivo real se guarda en Azure Blob Storage.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| uploaded_by_id | UUID | FK → users(id) | Quien subió |
+| entity_type | VARCHAR(50) | NOT NULL | Tipo de entidad |
+| entity_id | UUID | NOT NULL | ID de entidad |
+| url | VARCHAR(500) | NOT NULL | URL del archivo |
+| file_name | VARCHAR(255) | NOT NULL | Nombre original |
+| mime_type | VARCHAR(100) | NULL | Tipo MIME |
+| file_size | INTEGER | NULL | Tamaño en bytes |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Entity types:**
+- `visit`, `ticket`, `merma`, `work_order`, `machine`, `store`
+
+**Flujo de datos:**
+```
+App móvil → Sube foto → Azure Blob → URL guardada en attachments
+```
+
+---
+
+### 13. NFC_TAGS (Tags NFC físicos)
+
+Tags NFC asociados a máquinas para identificarlas físicamente.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| machine_id | UUID | FK → machines(id) | Máquina asociada |
+| uid | VARCHAR(14) | UNIQUE, NOT NULL | UID físico del tag |
+| tag_model | VARCHAR(20) | DEFAULT 'NTAG-215' | Modelo del tag |
+| hardware_model | VARCHAR(20) | DEFAULT 'NTAG215' | Hardware |
+| is_locked | BOOLEAN | DEFAULT FALSE | Si está bloqueado |
+| is_active | BOOLEAN | DEFAULT TRUE | Si está activo |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Flujo de datos:**
+```
+App móvil → Lee NFC UID → API valida → Crea Visit
+→ Valida GPS (< 100m del machine.location) → OK
+```
+
+---
+
+### 14. KPIS (Indicadores de rendimiento)
+
+KPIs configurables por tenant para seguimiento de métricas.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| user_id | UUID | FK → users(id) | Usuario (opcional) |
+| sector_id | UUID | FK → sectors(id) | Sector (opcional) |
+| type | VARCHAR(20) | NOT NULL | Tipo de KPI |
+| name | VARCHAR(255) | NOT NULL | Nombre |
+| target_value | NUMERIC(10,2) | NOT NULL | Valor objetivo |
+| current_value | NUMERIC(10,2) | DEFAULT 0 | Valor actual |
+| start_date | TIMESTAMP | NULL | Inicio del período |
+| end_date | TIMESTAMP | NULL | Fin del período |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Tipos:**
+- `visitas`: Visitas técnicas
+- `ventas`: Ventas realizadas
+- `tickets`: Tickets resueltos
+- `mermas`: Pérdidas reportadas
+
+---
+
+### 15. SYNC_QUEUE (Cola de sincronización)
+
+Cola para sincronizar datos offline desde la app móvil.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| tenant_id | UUID | FK → tenants(id) | Tenant al que pertenece |
+| user_id | UUID | FK → users(id) | Usuario que sync |
+| operation_type | VARCHAR(50) | NOT NULL | Tipo de operación |
+| status | VARCHAR(20) | DEFAULT 'PENDIENTE' | Estado |
+| payload | JSONB | NOT NULL | Datos JSON |
+| retry_count | INTEGER | DEFAULT 0 | Intentos |
+| max_retries | INTEGER | DEFAULT 3 | Máx. intentos |
+| error_message | TEXT | NULL | Mensaje de error |
+| error_stack | TEXT | NULL | Stack de error |
+| next_retry_at | TIMESTAMP | NULL | Próximo retry |
+| synced_at | TIMESTAMP | NULL | Fecha sinc. |
+| entity_id | UUID | NULL | Entidad creada |
+| entity_type | VARCHAR(50) | NULL | Tipo de entidad |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+| updated_at | TIMESTAMP | DEFAULT NOW | Última modificación |
+| deleted_at | TIMESTAMP | NULL | Soft delete |
+
+**Estados:**
+- `PENDIENTE`: Esperando procesar
+- `SINCRONIZADO`: Procesado OK
+- `FALLIDO`: Error
+- `REVISION_MANUAL`: Requiere revisión
+
+**Operation types:**
+- `visit_check_in`: Inicio de visita
+- `visit_check_out`: Fin de visita
+- `work_order_delivery`: Entrega de orden
+- `ticket_report`: Reporte de ticket
+- `ticket_update`: Actualización de ticket
+- `attachment_upload`: Subida de archivo
+
+**Flujo de datos:**
+```
+App móvil (sin internet) → Guarda local → Sync queue
+→ Internet disponible → Sync a API → Procesa → Marca SINCRONIZADO
+```
+
+---
+
+### 16. PASSWORD_RESETS (Recuperación de contraseña)
+
+Tokens para recovery de contraseña.
+
+| Campo | Tipo | Restricciones | Descripción |
+|-------|------|-------------|------------|
+| id | UUID | PK | Identificador único |
+| user_id | UUID | FK → users(id) | Usuario |
+| token_prefix | VARCHAR(8) | NOT NULL | Prefijo del token |
+| reset_token_hash | VARCHAR(255) | NOT NULL | Hash del token |
+| expires_at | TIMESTAMP | NOT NULL | Expira |
+| used | BOOLEAN | DEFAULT FALSE | Si fue usado |
+| created_at | TIMESTAMP | DEFAULT NOW | Fecha de creación |
+
+---
+
+## Notas de Implementación
+
+### Multi-tenant
+- Todas las tablas tienen `tenant_id`
+- Queries siempre incluyen `tenant_id` como filtro
+- Middleware de NestJS valida acceso
+
+### Soft Delete
+- Todas las tablas tienen `deleted_at`
+- Queries filtran `deleted_at IS NULL`
+
+### GPS
+- Máxima distancia: 100 metros entre NFC y machine
+- Usar Haversine formula para calcular distancia
+
+### Offline
+- App móvil guarda local y sincroniza después
+- Sync queue procesa en orden FIFO
+- Retry automático con backoff exponencial
