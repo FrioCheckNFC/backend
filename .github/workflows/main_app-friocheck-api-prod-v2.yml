@@ -29,11 +29,18 @@ jobs:
           npm run build --if-present
           npm run test --if-present
 
+      - name: Prepare deployment artifact
+        run: |
+          mkdir deploy
+          cp -r dist deploy/
+          cp package.json package-lock.json deploy/
+          # Agrega aquí otros archivos de config si los necesitas
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: deploy
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,10 +54,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
+          path: deploy
 
-      - name: Move deployment files to root
-        run: |
-          mv node-app/* .
+      - name: List files before deploy
+        run: ls -lR deploy
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -65,5 +72,4 @@ jobs:
         with:
           app-name: 'app-friocheck-api-prod-v2'
           slot-name: 'Production'
-          package: .
-          
+          package: ./deploy
